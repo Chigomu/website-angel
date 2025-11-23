@@ -9,21 +9,34 @@
 </head>
 <body>
 
-  <!-- NAVBAR -->
+  <?php
+session_start();
+$isAdmin = !empty($_SESSION['admin_logged_in']);
+?>
+
+<header>
   <nav class="navbar" id="navbar">
-    <a href="#" class="logo">Ibu Angel</a>
-    <div class="nav-links">
-      <a href="#home">Beranda</a>
-      <a href="#about">Tentang</a>
-      <a href="#produk">Menu</a>
-      <a href="custom.html">Custom</a> 
-      <a href="#pesan">Keranjang</a>
-      
-      <a href="#" id="adminLink" class="admin-link">Admin</a>
-      <a href="dashboard.html" class="admin-link">Dashboard</a>
-      <a href="#" id="logoutLink" class="admin-link">Logout</a>
-    </div>
+
+    <div class="logo">Ibu Angel Bakery</div>
+
+    <ul class="nav-links">
+      <li><a href="#home">Beranda</a></li>
+      <li><a href="#about">Tentang</a></li>
+      <li><a href="#cakes">Menu</a></li>
+      <li><a href="custom.html">Custom</a></li>
+      <li><a href="#cart">Keranjang</a></li>
+
+      <?php if(!$isAdmin): ?>
+        <li><a href="admin/admin_login.php">Admin</a></li>
+      <?php else: ?>
+        <li><a href="admin/dashboard.php">Dashboard</a></li>
+        <li><a href="admin/logout.php">Logout</a></li>
+      <?php endif; ?>
+    </ul>
+
   </nav>
+</header>
+
 
   <!-- HERO SECTION -->
   <section id="home" class="hero">
@@ -257,19 +270,6 @@
     </div>
   </div>
 
-  <!-- MODAL ADMIN -->
-  <div id="adminModal" class="modal" style="align-items: center; justify-content: center; display: none;">
-    <div class="modal-content" style="max-width: 400px; display: block; padding: 40px; text-align: center;">
-      <span class="close-modal close-admin">&times;</span>
-      <h3>Admin Login</h3>
-      <div class="modal-form" style="margin-top: 20px;">
-        <input type="password" id="adminPassword" placeholder="Password Admin">
-        <button id="adminLoginBtn" class="btn-primary" style="width: 100%;">Login</button>
-      </div>
-      <p id="adminError" style="color: red; display: none; margin-top: 10px;">Password Salah!</p>
-    </div>
-  </div>
-
   <!-- WA FLOAT -->
   <a href="https://wa.me/6289689433798" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
     <i class="fab fa-whatsapp"></i>
@@ -300,7 +300,6 @@
     // === 3. LOGIKA CART & MODAL ===
     const modal = document.getElementById("productModal");
     const customModal = document.getElementById("customModal");
-    const adminModal = document.getElementById("adminModal");
 
     // Elemen Modal Regular
     const modalImg = document.getElementById("modalImg");
@@ -320,15 +319,6 @@
 
     const cartDiv = document.getElementById("cart");
     const checkoutBtn = document.getElementById("checkoutBtn");
-
-    // Admin Elements
-    const adminLink = document.getElementById("adminLink");
-    const logoutLink = document.getElementById("logoutLink");
-    const adminLinks = document.querySelectorAll(".admin-link");
-    const adminPassword = document.getElementById("adminPassword");
-    const adminLoginBtn = document.getElementById("adminLoginBtn");
-    const adminError = document.getElementById("adminError");
-    const closeAdminBtn = document.querySelector(".close-admin");
 
     let currentProduct = null;
     let currentCustomProduct = null;
@@ -373,12 +363,10 @@
 
     document.getElementById("closeRegular").onclick = () => modal.style.display = "none";
     document.getElementById("closeCustom").onclick = () => customModal.style.display = "none";
-    if(closeAdminBtn) closeAdminBtn.onclick = () => adminModal.style.display = "none";
 
     window.onclick = e => { 
       if (e.target == modal) modal.style.display = "none";
       if (e.target == customModal) customModal.style.display = "none";
-      if (e.target == adminModal) adminModal.style.display = "none";
     };
 
     addToCartBtn.addEventListener("click", () => {
@@ -515,35 +503,6 @@
       window.open(`https://wa.me/6289689433798?text=${msg}`, "_blank");
     });
 
-    function checkAdminLogin() {
-      if (localStorage.getItem("isAdminLoggedIn") === "true") {
-        adminLinks.forEach(link => link.style.display = "inline-block");
-        logoutLink.style.display = "inline-block";
-        adminLink.style.display = "none";
-      } else {
-        adminLinks.forEach(link => link.style.display = "none");
-        logoutLink.style.display = "none";
-        adminLink.style.display = "inline-block";
-      }
-    }
-
-    adminLink.addEventListener("click", (e) => { e.preventDefault(); adminModal.style.display = "flex"; });
-    adminLoginBtn.addEventListener("click", () => {
-      if (adminPassword.value === "admin123") {
-        localStorage.setItem("isAdminLoggedIn", "true");
-        adminModal.style.display = "none";
-        adminPassword.value = "";
-        checkAdminLogin();
-        window.location.href = "dashboard.html";
-      } else { adminError.style.display = "block"; }
-    });
-    logoutLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      localStorage.removeItem("isAdminLoggedIn");
-      checkAdminLogin();
-      window.location.href = "index.html";
-    });
-    checkAdminLogin();
   </script>
 
   <style>
