@@ -47,9 +47,10 @@ require_once __DIR__ . '/../app/auth_check.php';
     body { padding-top: 100px; }
 
     .admin-container {
-      max-width: 1000px;
+      max-width: 1300px;
       margin: 0 auto;
       padding: 0 20px;
+      justify-content: center;
     }
 
     /* Kartu Utama (Paper Style) */
@@ -64,11 +65,15 @@ require_once __DIR__ . '/../app/auth_check.php';
     .admin-card::before {
       content: '';
       position: absolute;
-      top: -6px; left: -6px;
-      width: 100%; height: 100%;
+      top: -6px; 
+      left: -6px;
+      width: calc(100% + 12px);
+      height: calc(100% + 12px);
       border: 1px solid var(--text-dark);
       z-index: -1;
     }
+
+
 
     /* Order Item Styling */
     .order-item {

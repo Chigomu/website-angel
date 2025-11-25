@@ -1,5 +1,22 @@
 <?php
 require_once __DIR__ . '/../app/auth_check.php';
+require_once __DIR__ . '/../app/db.php';  // sudah ada PDO $pdo
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+// PAGINATION
+$limit = 10;
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$offset = ($page - 1) * $limit;
+
+// Ambil data produk
+$stmt = $pdo->prepare("SELECT * FROM products ORDER BY created_at DESC LIMIT :limit OFFSET :offset");
+$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
+$products = $stmt->fetchAll();
+
+// Hitung total untuk pagination
+$total = $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+$total_pages = ceil($total / $limit);
 ?>
 
 
@@ -15,59 +32,9 @@ require_once __DIR__ . '/../app/auth_check.php';
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-  <!-- === IMPORT FIREBASE === -->
-  <script type="module">
-    const firebaseConfig = {
-      apiKey: "AIzaSyAlAO2yzW1xBSR-qq0CUARBtckPK2EypqE",
-      authDomain: "webkue-b82fb.firebaseapp.com",
-      projectId: "webkue-b82fb",
-      storageBucket: "webkue-b82fb.firebasestorage.app",
-      messagingSenderId: "682883354783",
-      appId: "1:682883354783:web:b39cfd14937a3cab27d2aa",
-      measurementId: "G-F3ET24JL31"
-    };
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { 
-      getFirestore, doc, collection, addDoc, setDoc, deleteDoc, onSnapshot, query, getDocs, limit
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.firebase = {
-      app, auth, db,
-      signInAnonymously, onAuthStateChanged,
-      doc, collection, addDoc, setDoc, deleteDoc, onSnapshot, query, getDocs, limit
-    };
-  </script>
-  <!-- === AKHIR IMPORT FIREBASE === -->
-
   <style>
     /* === DASHBOARD SPECIFIC STYLES === */
     body { padding-top: 100px; }
-
-    .admin-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px;
-      display: grid;
-      grid-template-columns: 1fr 1.5fr;
-      gap: 50px;
-    }
-
-    .admin-card {
-      background: #fff;
-      padding: 40px;
-      border: 2px solid var(--text-dark);   /* DOUBLE BORDER TANPA PSEUDO */
-      outline: 1px solid var(--line-color); /* BORDER HALUS LUAR */
-      outline-offset: -6px;                 /* MENIRU EFEK BEFORE */
-    }
-    .admin-card::before {
-      display: none !important;
-    }
 
     .admin-header {
       text-align: center;
@@ -76,79 +43,104 @@ require_once __DIR__ . '/../app/auth_check.php';
     .admin-header h2 { font-size: 2.5rem; color: var(--text-dark); }
     .admin-header p { color: var(--text-light); }
 
-    .form-group { margin-bottom: 20px; }
-    .form-group label { 
-      display: block; 
-      font-family: var(--font-heading); 
-      font-size: 1.1rem;
-      margin-bottom: 8px; 
-      color: var(--text-dark);
-    }
-    
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--line-color);
-      font-family: var(--font-body);
-      font-size: 0.95rem;
-      background: #fff;
-      transition: all 0.3s ease;
-    }
-    
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
-    }
+/* === MODERN TABLE STYLE === */
+.table-container {
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03); /* Bayangan halus seperti product card */
+  overflow: hidden; /* Agar sudut tabel tumpul */
+  border: 1px solid var(--line-color);
+  margin-top: 20px;
+}
 
-    .product-list-container {
-      max-height: 800px;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
+.product-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-body);
+}
 
-    .product-list-container::-webkit-scrollbar { width: 6px; }
-    .product-list-container::-webkit-scrollbar-track { background: #f1f1f1; }
-    .product-list-container::-webkit-scrollbar-thumb { background: var(--line-color); }
+.product-table th {
+  background-color: var(--text-dark); /* Header Gelap agar kontras */
+  color: var(--bg-cream);
+  font-family: var(--font-heading); /* Menggunakan font judul */
+  font-weight: 400;
+  letter-spacing: 1px;
+  padding: 18px;
+  text-align: left;
+  font-size: 1.1rem;
+}
 
-    .admin-product-item {
-      display: flex;
-      align-items: center;
-      padding: 20px 0;
-      border-bottom: 1px dashed var(--line-color);
-      transition: background 0.2s;
-    }
-    .admin-product-item:hover { background-color: rgba(255,255,255,0.5); }
+.product-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-color);
+  color: var(--text-dark);
+  vertical-align: middle;
+}
 
-    .item-img {
-      width: 70px; height: 70px;
-      object-fit: cover;
-      margin-right: 20px;
-      border: 1px solid var(--line-color);
-    }
+/* Zebra Striping Halus (opsional, tapi bagus untuk data banyak) */
+.product-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
 
-    .item-info { flex: 1; }
-    .item-info h4 { margin: 0; font-size: 1.2rem; color: var(--text-dark); }
-    .item-info span { display: block; font-size: 0.9rem; color: var(--text-light); margin-top: 4px; }
-    .item-price { color: var(--accent); font-weight: 600; }
+.product-table tbody tr:hover {
+  background-color: #FDFBF7; /* Warna Cream saat di-hover */
+  transform: scale(1.005); /* Efek zoom sangat halus */
+  transition: all 0.2s ease;
+}
 
-    .action-buttons { display: flex; gap: 10px; margin-left: 15px; }
-    .btn-icon {
-      width: 35px; height: 35px;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--line-color);
-      background: #fff;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text-dark);
-    }
-    .btn-icon:hover { background: var(--text-dark); color: #fff; }
-    .btn-icon.delete:hover { background: #c0392b; border-color: #c0392b; color: #fff; }
+/* Styling Kolom Aksi */
+.action-links {
+  display: flex;
+  gap: 10px;
+}
 
-    @media (max-width: 900px) {
-      .admin-container { grid-template-columns: 1fr; }
-      .admin-card { padding: 25px; }
-    }
+.btn-action {
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: 0.3s;
+  border: 1px solid transparent;
+}
+
+.btn-detail { color: var(--text-light); background: #f0f0f0; }
+.btn-detail:hover { background: #e0e0e0; color: var(--text-dark); }
+
+.btn-edit { color: var(--accent); background: rgba(217, 119, 87, 0.1); }
+.btn-edit:hover { background: var(--accent); color: white; }
+
+.btn-delete { color: #C0392B; background: rgba(192, 57, 43, 0.1); }
+.btn-delete:hover { background: #C0392B; color: white; }
+
+.pagination { 
+  display: flex; 
+  justify-content: center;
+  align-items: center; 
+  margin-top: 30px; 
+  gap: 12px;       
+}
+
+.pagination a {
+  text-decoration: none; 
+  border: 1px solid var(--line-color);
+  color: var(--text-dark);
+  border-radius: 50%;  
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.pagination a:hover, .pagination a.active {
+  background-color: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-2px); /* Efek naik sedikit saat hover */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
   </style>
 </head>
 <body>
@@ -174,85 +166,79 @@ require_once __DIR__ . '/../app/auth_check.php';
 
     <div class="admin-container">
       
-      <!-- KOLOM KIRI: FORM INPUT -->
-      <div class="admin-card reveal active">
-        <h3 id="formTitle" style="margin-bottom: 25px; border-bottom: 2px solid var(--line-color); padding-bottom: 10px;">Tambah Produk Baru</h3>
-        
-        <form id="productForm">
-          <input type="hidden" id="productId" />
-          
-          <div class="form-group">
-            <label>Nama Produk</label>
-            <input type="text" id="productName" placeholder="Contoh: Nastar Premium" required />
-          </div>
+      <!-- TABEL PRODUK -->
+      <h2 style="text-align: center; margin-bottom: 10px;">Daftar Produk</h2>
 
-          <div class="form-group">
-            <label>Kategori</label>
-            <select id="productCategory" required>
-              <option value="Kue Kering">🍪 Kue Kering</option>
-              <option value="Cake & Bolu">🍰 Cake & Bolu</option>
-              <option value="Ulang Tahun Anak">🎈 Ulang Tahun Anak</option>
-              <option value="Sweet Seventeen">💄 Sweet Seventeen</option>
-              <option value="Pernikahan">💍 Pernikahan</option>
-              <option value="Lamaran">💍 Lamaran</option>
-            </select>
-          </div>
+      <div class="table-container reveal">
+        <table class="product-table">
+          <thead>
+            <tr>
+              <th width="5%">ID</th>
+              <th width="25%">Nama Produk</th>
+              <th width="15%">Kategori</th>
+              <th width="10%">Jenis</th>
+              <th width="15%">Harga</th>
+              <th width="15%">Diperbarui</th>
+              <th width="15%">Aksi</th>
+            </tr>
+          </thead>
 
-          <div class="form-group">
-            <label>Tipe Produk</label>
-            <select id="productType" required onchange="togglePriceInputs()">
-              <option value="regular">Reguler (Harga Tetap)</option>
-              <option value="custom">Custom (Range Harga)</option>
-            </select>
-          </div>
-          
-          <!-- Input Harga Dinamis -->
-          <div id="priceRegular" class="form-group">
-            <label>Harga (Rp)</label>
-            <input type="number" id="productPrice" placeholder="75000" />
-          </div>
-
-          <div id="priceCustom" class="form-group" style="display:none; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label>Harga Min</label>
-              <input type="number" id="productPriceMin" placeholder="150000" />
-            </div>
-            <div>
-              <label>Harga Max</label>
-              <input type="number" id="productPriceMax" placeholder="300000" />
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Deskripsi Singkat</label>
-            <textarea id="productDesc" rows="3" required placeholder="Deskripsi menggugah selera..."></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>Bahan Utama (Opsional)</label>
-            <textarea id="productIngredients" rows="2" placeholder="Butter, Telur, Coklat..."></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label>URL Gambar</label>
-            <input type="url" id="productImageUrl" required placeholder="https://..." />
-          </div>
-          
-          <div style="margin-top: 30px; display: flex; gap: 10px;">
-            <button type="submit" class="btn-primary" style="width: 100%;">Simpan</button>
-            <button type="button" id="cancelEditBtn" class="btn-primary" style="background: #666; border-color: #666; display: none;">Batal</button>
-          </div>
-        </form>
+          <tbody>
+            <?php foreach ($products as $p): ?>
+            <tr>
+              <td>#<?= $p['id'] ?></td>
+              <td>
+                  <strong style="font-family: var(--font-heading); font-size: 1.1em;">
+                      <?= htmlspecialchars($p['name']) ?>
+                  </strong>
+              </td>
+              <td>
+                  <span style="color: var(--text-light); font-size: 0.9em;">
+                      <?= $p['category'] ?>
+                  </span>
+              </td>
+              <td>
+                  <?php if($p['type'] == 'regular'): ?>
+                      <span style="color: var(--accent); font-weight: 500;">Regular</span>
+                  <?php else: ?>
+                      <span style="color: #2980b9; font-weight: 500;">Custom</span>
+                  <?php endif; ?>
+              </td>
+              <td style="font-weight: 600;">Rp <?= number_format($p['price']) ?></td>
+              <td style="font-size: 0.85em; color: var(--text-light);">
+                  <?= date('d M Y', strtotime($p['updated_at'])) ?>
+                  <br>
+                  <?= date('H:i', strtotime($p['updated_at'])) ?>
+              </td>
+              <td>
+                <div class="action-links">
+                  <a href="detail_product.php?id=<?= $p['id'] ?>" class="btn-action btn-detail" title="Detail">
+                      <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="edit_product.php?id=<?= $p['id'] ?>" class="btn-action btn-edit" title="Edit">
+                      <i class="fas fa-edit"></i>
+                  </a>
+                  <a href="delete_product.php?id=<?= $p['id'] ?>" class="btn-action btn-delete" onclick="return confirm('Yakin ingin menghapus produk ini?')" title="Hapus">
+                      <i class="fas fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
       </div>
       
-      <!-- KOLOM KANAN: DAFTAR PRODUK -->
-      <div class="admin-card reveal active">
-        <h3 style="margin-bottom: 25px; border-bottom: 2px solid var(--line-color); padding-bottom: 10px;">Daftar Menu Saat Ini</h3>
-        
-        <div class="product-list-container" id="dashboardProductList">
-          <p style="text-align: center; padding: 20px;">Memuat data...</p>
-        </div>
+      <div class="pagination">
+        <?php for ($i=1; $i <= $total_pages; $i++): ?>
+          <a 
+            href="?page=<?= $i ?>" 
+            class="<?= ($i == $page ? 'active' : '') ?>"
+          ><?= $i ?></a>
+        <?php endfor; ?>
       </div>
+
+      
 
     </div>
   </div>
@@ -286,162 +272,7 @@ require_once __DIR__ . '/../app/auth_check.php';
         }
       }
       
-      // === 3. LOGIKA FIREBASE CRUD ===
-      const { 
-        app, auth, db,
-        signInAnonymously, onAuthStateChanged,
-        doc, collection, addDoc, setDoc, deleteDoc, onSnapshot
-      } = window.firebase;
-
-      let userId = null;
-      let productsCollectionRef = null;
-      const projectId = window.firebase.app.options.projectId; 
-      let allProductsCache = []; 
-
-      const productForm = document.getElementById("productForm");
-      const dashboardProductList = document.getElementById("dashboardProductList");
-      const formTitle = document.getElementById("formTitle");
-      const productIdField = document.getElementById("productId");
-      const cancelEditBtn = document.getElementById("cancelEditBtn");
-      
-      async function initializeFirebase() {
-        try {
-          await onAuthStateChanged(auth, async (user) => {
-            if (!user) await signInAnonymously(auth);
-            
-            userId = auth.currentUser.uid;
-            productsCollectionRef = collection(db, `artifacts/${projectId}/public/data/products`);
-            listenForDashboardProducts();
-          });
-        } catch (error) {
-          console.error("Firebase Auth Error:", error);
-        }
-      }
-
-      function listenForDashboardProducts() {
-        onSnapshot(productsCollectionRef, (snapshot) => {
-          if (!dashboardProductList) return;
-          dashboardProductList.innerHTML = ""; 
-          
-          allProductsCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-          if (allProductsCache.length === 0) {
-            dashboardProductList.innerHTML = "<p style='text-align:center; color:#999;'>Belum ada produk.</p>";
-            return;
-          }
-          
-          allProductsCache.sort((a, b) => a.category.localeCompare(b.category));
-          
-          allProductsCache.forEach(product => {
-            const isRegular = product.type === 'regular' || !product.type;
-            const priceText = isRegular
-              ? `Rp ${(product.price || 0).toLocaleString()}`
-              : `Rp ${(product.priceMin || 0).toLocaleString()} - ${(product.priceMax || 0).toLocaleString()}`;
-              
-            const itemHtml = `
-              <div class="admin-product-item">
-                <img src="${product.imageUrl || 'https://placehold.co/70'}" class="item-img" alt="${product.name}" onerror="this.src='https://placehold.co/70'">
-                <div class="item-info">
-                  <h4>${product.name || 'Tanpa Nama'}</h4>
-                  <span class="item-price">${priceText}</span>
-                  <span>${product.category} (${isRegular ? 'Reguler' : 'Custom'})</span>
-                </div>
-                <div class="action-buttons">
-                  <button class="btn-icon" onclick="editProduct('${product.id}')" title="Edit"><i class="fas fa-pen"></i></button>
-                  <button class="btn-icon delete" onclick="deleteProduct('${product.id}')" title="Hapus"><i class="fas fa-trash"></i></button>
-                </div>
-              </div>
-            `;
-            dashboardProductList.innerHTML += itemHtml;
-          });
-        });
-      }
-      
-      window.editProduct = function(id) {
-        const product = allProductsCache.find(p => p.id === id);
-        if (!product) return;
-        
-        formTitle.textContent = 'Edit Produk: ' + product.name;
-        productIdField.value = product.id;
-        
-        document.getElementById('productName').value = product.name || '';
-        document.getElementById('productDesc').value = product.description || '';
-        document.getElementById('productIngredients').value = product.ingredients || '';
-        document.getElementById('productImageUrl').value = product.imageUrl || '';
-        document.getElementById('productCategory').value = product.category || 'Kue Kering';
-        document.getElementById('productType').value = product.type || 'regular';
-        
-        document.getElementById('productPrice').value = product.price || '';
-        document.getElementById('productPriceMin').value = product.priceMin || '';
-        document.getElementById('productPriceMax').value = product.priceMax || '';
-
-        togglePriceInputs(); 
-        
-        cancelEditBtn.style.display = 'block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      window.deleteProduct = async function(id) {
-        if (confirm('Yakin ingin menghapus produk ini?')) {
-          try {
-            await deleteDoc(doc(productsCollectionRef, id));
-          } catch (error) {
-            alert("Gagal menghapus: " + error.message);
-          }
-        }
-      }
-
-      if (productForm) {
-        productForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          
-          const type = document.getElementById('productType').value;
-          const productData = {
-            name: document.getElementById('productName').value,
-            description: document.getElementById('productDesc').value,
-            ingredients: document.getElementById('productIngredients').value,
-            imageUrl: document.getElementById('productImageUrl').value,
-            category: document.getElementById('productCategory').value,
-            type: type
-          };
-
-          if (type === 'regular') {
-             productData.price = parseInt(document.getElementById('productPrice').value) || 0;
-             productData.priceMin = 0; productData.priceMax = 0;
-          } else {
-             productData.price = 0;
-             productData.priceMin = parseInt(document.getElementById('productPriceMin').value) || 0;
-             productData.priceMax = parseInt(document.getElementById('productPriceMax').value) || 0;
-          }
-          
-          try {
-            const id = productIdField.value;
-            if (id) {
-              await setDoc(doc(productsCollectionRef, id), productData, { merge: true });
-            } else {
-              await addDoc(productsCollectionRef, productData);
-            }
-            resetProductForm();
-          } catch (error) {
-            console.error("Error saving:", error);
-            alert("Gagal menyimpan: " + error.message);
-          }
-        });
-      }
-      
-      function resetProductForm() {
-        formTitle.textContent = 'Tambah Produk Baru';
-        productForm.reset();
-        productIdField.value = '';
-        cancelEditBtn.style.display = 'none';
-        document.getElementById('productType').value = 'regular';
-        togglePriceInputs();
-      }
-      
-      if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetProductForm);
-      
-      initializeFirebase();
-    });
+   });
   </script>
 </body>
 </html>

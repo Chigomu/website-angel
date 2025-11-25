@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <?php
+<?php
 session_start();
 $isAdmin = !empty($_SESSION['admin_logged_in']);
 ?>
@@ -17,13 +17,13 @@ $isAdmin = !empty($_SESSION['admin_logged_in']);
 <header>
   <nav class="navbar" id="navbar">
 
-    <div class="logo">Ibu Angel Bakery</div>
+    <div class="logo">Ibu Angel</div>
 
     <ul class="nav-links">
       <li><a href="#home">Beranda</a></li>
       <li><a href="#about">Tentang</a></li>
       <li><a href="#cakes">Menu</a></li>
-      <li><a href="custom.html">Custom</a></li>
+      <li><a href="custom.php">Custom</a></li>
       <li><a href="#cart">Keranjang</a></li>
 
       <?php if(!$isAdmin): ?>
@@ -196,7 +196,7 @@ $isAdmin = !empty($_SESSION['admin_logged_in']);
     
     <!-- TOMBOL BARU: Link ke halaman lengkap -->
     <div style="margin-top: 30px;">
-      <a href="custom.html" class="btn-primary" style="background-color: #fff; color: var(--accent);">Lihat Katalog Lengkap</a>
+      <a href="custom.php" class="btn-primary" style="background-color: #fff; color: var(--accent);">Lihat Katalog Lengkap</a>
     </div>
   </section>
 
