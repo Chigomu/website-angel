@@ -43,7 +43,6 @@ $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
   <nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
-        <a href="../index.php">Home</a>
         <a href="orders.php">Pesanan</a>
         <a href="products.php">Produk</a>
         <a href="dashboard.php">Dashboard</a>
