@@ -2,6 +2,7 @@
 // Menggunakan auth_check.php untuk memulai sesi secara otomatis
 require_once 'app/auth_check.php';
 require_once 'app/db.php'; // Koneksi Database
+require_once 'app/settings_loader.php';
 
 // Cek status login admin
 $isAdmin = !empty($_SESSION['admin_logged_in']);

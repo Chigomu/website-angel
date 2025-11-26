@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'app/db.php'; 
+require_once 'app/settings_loader.php';
 
 $isAdmin = !empty($_SESSION['admin_logged_in']);
 
@@ -40,11 +41,12 @@ try {
       margin: 0;
     }
 
-    /* === FIX SCROLLING TEXT === */
+    /* === FIX SCROLLING TEXT (Marquee) === */
     .marquee-content {
       display: inline-block;
       white-space: nowrap;
-      animation: scroll-seamless 30s linear infinite; 
+      /* Durasi diperlambat sedikit (40s) agar lebih enak dibaca jika teks panjang */
+      animation: scroll-seamless 40s linear infinite; 
     }
 
     @keyframes scroll-seamless {
@@ -101,27 +103,23 @@ try {
     <div class="hero-bg"></div>
     <div class="hero-overlay"></div>
     <div class="hero-content reveal">
-      <h1>Baked with Love,<br>Served with Joy.</h1>
-      <p>Kue klasik dengan sentuhan modern. Dibuat segar setiap hari dari dapur rumah kami untuk momen istimewa Anda.</p>
+      <h1><?= set('hero_title') ?></h1> 
+      <p><?= set('hero_desc') ?></p>
       <a href="#produk" class="btn-primary">Lihat Menu Kami</a>
     </div>
   </section>
 
   <div class="marquee-container">
     <div class="marquee-content">
-      <span>Fresh Tiap Hari</span> • 
-      <span>Bahan Premium</span> • 
-      <span>100% Halal</span> • 
-      <span>Buatan Rumahan</span> • 
-      <span>Tanpa Bahan Pengawet</span> • 
-      <span>Fresh Setiap Saat</span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
       
-      <span>Fresh Tiap Hari</span> • 
-      <span>Bahan Premium</span> • 
-      <span>100% Halal</span> • 
-      <span>Buatan Rumahan</span> • 
-      <span>Tanpa Bahan Pengawet</span> • 
-      <span>Fresh Setiap Saat</span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • 
     </div>
   </div>
 
@@ -129,12 +127,11 @@ try {
     <div class="about-container">
       <div class="about-text reveal">
         <h3>Cerita Kami</h3>
-        <h2>Dari Dapur Sederhana, Penuh Rasa Cinta.</h2>
-        <p>Berawal dari hobi membuat kue untuk keluarga, "Ibu Angel" kini hadir untuk berbagi kebahagiaan yang sama dengan Anda.</p>
-        <p>Kami menggunakan bahan-bahan premium pilihan, tanpa pengawet, dan dipanggang dengan teknik artisan.</p>
+        <h2><?= set('about_title') ?></h2>
+        <p><?= nl2br(set('about_desc')) ?></p>
       </div>
       <div class="about-img reveal">
-        <img src="dapur.png" alt="Dapur Ibu Angel" onerror="this.src='https://images.unsplash.com/photo-1556910103-1c02745a30bf?w=800&q=80'">
+        <img src="<?= set('about_img') ?>" alt="Dapur Ibu Angel" onerror="this.src='https://images.unsplash.com/photo-1556910103-1c02745a30bf?w=800&q=80'">
       </div>
     </div>
   </section>
