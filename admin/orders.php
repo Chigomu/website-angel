@@ -133,7 +133,6 @@ $orders = $stmt->fetchAll();
 <nav class="navbar">
     <a href="../index.php" class="logo">Ibu Angel</a>
     <div class="nav-links">
-        <a href="../index.php">Home</a>
         <a href="#" style="color: var(--accent);">Pesanan</a> 
         <a href="dashboard.php">Dashboard</a>
         <a href="logout.php" style="color: #C0392B;">Logout</a>

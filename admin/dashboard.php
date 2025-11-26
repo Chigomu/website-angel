@@ -173,7 +173,6 @@ $total_pages = ceil($total / $limit);
   <nav class="navbar" id="navbar">
     <a href="../index.php" class="logo">Ibu Angel</a>
     <div class="nav-links">
-      <a href="../index.php">Home</a>
       <a href="../admin/orders.php">Pesanan</a>
       <a href="#" class="active" style="color: var(--accent);">Dashboard</a>
       <a href="logout.php" style="color: #C0392B;">Logout</a>

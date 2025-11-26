@@ -92,13 +92,7 @@ try {
       <li><a href="#about">Tentang</a></li>
       <li><a href="#produk">Menu</a></li>
       <li><a href="custom.php">Custom</a></li>
-      <li><a href="#pesan">Keranjang</a></li>
-      <?php if(!$isAdmin): ?>
-        <li><a href="admin/admin_login.php">Admin</a></li>
-      <?php else: ?>
-        <li><a href="admin/dashboard.php">Dashboard</a></li>
-        <li><a href="admin/logout.php" style="color: #C0392B;">Logout</a></li>
-      <?php endif; ?>
+      <li><a href="#pesan">Keranjang</a></li> 
     </ul>
   </nav>
 </header>
@@ -294,7 +288,7 @@ try {
     </div>
   </div>
 
-  <a href="https://wa.me/6281351966722" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+  <a href="https://wa.me/6289689433798" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none;">
     <i class="fab fa-whatsapp"></i>
   </a>
 
@@ -503,7 +497,7 @@ try {
               });
               msg += `--------------------%0A*Total: Rp ${total.toLocaleString('id-ID')}*`;
 
-              window.open(`https://wa.me/6281351966722?text=${msg}`, "_blank");
+              window.open(`https://wa.me/6289689433798?text=${msg}`, "_blank");
 
               cart = [];
               updateCart();

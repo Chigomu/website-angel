@@ -103,13 +103,7 @@ function getCategoryEmoji($categoryName) {
       <li><a href="index.php#produk">Menu</a></li>
       <li><a href="custom.php" class="active" style="color: var(--accent);">Custom</a></li>
       <li><a href="index.php#pesan">Keranjang</a></li>
-      
-      <?php if(!$isAdmin): ?>
-        <li><a href="admin/admin_login.php">Admin</a></li>
-      <?php else: ?>
-        <li><a href="admin/dashboard.php">Dashboard</a></li>
-        <li><a href="admin/logout.php" style="color: #C0392B;">Logout</a></li>
-      <?php endif; ?>
+    
     </ul>
   </nav>
 
