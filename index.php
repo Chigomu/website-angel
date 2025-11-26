@@ -238,6 +238,53 @@ try {
     </div>
   </section>
 
+  <!-- === BAGIAN BARU: LOKASI & KONTAK (DITAMBAHKAN DISINI) === -->
+  <section id="lokasi" class="section reveal" style="padding-top: 20px;">
+    <div class="section-header">
+        <h2>Kunjungi Kami</h2>
+        <p>Datang dan cium aroma kue segar langsung dari oven kami.</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; align-items: flex-start;">
+        
+        <!-- Info Teks (Kiri) -->
+        <div style="flex: 1; min-width: 300px; background: #fff; padding: 40px; border-radius: 12px; border: 1px solid var(--line-color); box-shadow: 0 5px 20px rgba(0,0,0,0.03);">
+            <h3 style="margin-bottom: 25px; color: var(--accent); font-family: var(--font-heading); font-size: 1.8rem;">Ibu Angel</h3>
+            
+            <div style="margin-bottom: 25px;">
+                <strong style="display:block; color:var(--text-dark); margin-bottom: 5px;">Alamat:</strong>
+                <p style="color: var(--text-light); line-height: 1.6;">
+                    <i class="fas fa-map-pin" style="color: var(--accent); margin-right: 8px;"></i>
+                    <?= nl2br(set('contact_address', '')) ?>
+                </p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <strong style="display:block; color:var(--text-dark); margin-bottom: 5px;">Kontak:</strong>
+                <p style="color: var(--text-light);">
+                    <i class="fab fa-whatsapp" style="color: var(--accent); margin-right: 8px;"></i>
+                    <?= set('contact_phone', '') ?>
+                </p>
+            </div>
+
+            <a href="https://wa.me/<?= set('contact_phone') ?>" target="_blank" class="btn-primary" style="width: 100%; text-align: center; display: block;">
+                Hubungi via WhatsApp
+            </a>
+        </div>
+
+        <!-- Peta Google Maps (Kanan) -->
+        <div style="flex: 1.5; min-width: 300px; height: 400px; background: #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <!-- Default Map jika setting kosong -->
+            <?php $mapUrl = set('gmaps_url', ''); ?>
+            
+            <iframe 
+                src="<?= $mapUrl ?>" 
+                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </div>
+  </section>
+  <!-- === AKHIR BAGIAN LOKASI === -->
+
   <footer>
     <span class="footer-logo">Ibu Angel</span>
     <p>Dibuat dengan kualitas dan bahan terbaik.</p>

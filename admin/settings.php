@@ -96,6 +96,18 @@ $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         <label>Deskripsi Bawah (CTA)</label>
         <textarea name="settings[cta_desc]"><?= htmlspecialchars($data['cta_desc'] ?? '') ?></textarea>
 
+        <h3>📞 Kontak & Lokasi</h3>
+
+        <label>Nomor Telepon (Format: 628...)</label>
+        <input type="text" name="settings[contact_phone]" value="<?= htmlspecialchars($data['contact_phone'] ?? '') ?>" placeholder="628123456789">
+
+        <label>Alamat Lengkap</label>
+        <textarea name="settings[contact_address]" rows="3"><?= htmlspecialchars($data['contact_address'] ?? '') ?></textarea>
+
+        <label>Link Google Maps (Embed URL)</label>
+        <input type="text" name="settings[gmaps_url]" value="<?= htmlspecialchars($data['gmaps_url'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
+        
+        <!-- Tombol Simpan ada di bawah ini -->
         <button type="submit" class="btn-save">Simpan Perubahan</button>
     </form>
 </div>
