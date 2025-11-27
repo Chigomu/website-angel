@@ -3,22 +3,17 @@ session_start();
 require_once 'app/db.php'; 
 require_once 'app/settings_loader.php';
 
-$isAdmin = !empty($_SESSION['admin_logged_in']);
-
-// === AMBIL DATA PRODUK DARI DATABASE ===
+// === AMBIL DATA PRODUK ===
 try {
     $stmt = $pdo->prepare("SELECT * FROM products WHERE type = 'regular' ORDER BY category ASC, created_at DESC");
     $stmt->execute();
     $all_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     $grouped_products = [];
     foreach ($all_products as $p) {
         $cat = $p['category'] ?: 'Lainnya';
         $grouped_products[$cat][] = $p;
     }
-} catch (Exception $e) {
-    $grouped_products = [];
-}
+} catch (Exception $e) { $grouped_products = []; }
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -27,96 +22,32 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ibu Angel | Artisan Cookies & Cakes</title>
   <link rel="stylesheet" href="style.css">
-  <?php require_once 'app/dynamic_style.php'; ?>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <?php require_once 'app/dynamic_style.php'; ?>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
-    /* === TUNING JARAK (SUPER SLIM) === */
+    /* === STYLE FIXES === */
+    .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
+    .section { padding: 30px 20px !important; }
+    .section-header { margin-bottom: 20px !important; }
+    .section-header h2 { margin-bottom: 5px !important; font-size: 2.5rem; }
+    .hero { min-height: auto !important; padding: 100px 0 40px !important; }
+    .marquee-container { padding: 8px 0 !important; }
+    .custom-banner { padding: 40px 20px !important; margin-top: 20px !important; margin-bottom: 0 !important; }
+    footer { padding: 40px 20px 20px !important; margin-top: 0 !important; }
 
-    /* 1. Perkecil Padding Global Section (30px sangat rapat) */
-    .section { 
-        padding: 30px 20px !important; 
-    }
-
-    /* 2. Rapatkan Judul Section dengan Kontennya */
-    .section-header { 
-        margin-bottom: 20px !important; 
-    }
-    .section-header h2 { 
-        margin-bottom: 5px !important; 
-        font-size: 2.5rem; /* Sedikit diperkecil agar proporsional */
-    }
-
-    /* 3. Hero Section */
-    .hero { 
-        min-height: auto !important; 
-        padding: 100px 0 40px !important; /* Atas tetap lega utk navbar, bawah rapat */
-    }
-
-    /* 4. Marquee Rapat */
-    .marquee-container { 
-        padding: 8px 0 !important; 
-    }
-
-    /* 5. Custom Banner (Kue Custom) - RAPAT KE BAWAH */
-    .custom-banner { 
-        padding: 40px 20px !important; 
-        margin-top: 20px !important; 
-        margin-bottom: 0 !important; /* Menempel ke Pesanan Anda */
-    }
-
-    /* 6. Footer */
-    footer { 
-        padding: 40px 20px 20px !important; 
-        margin-top: 0 !important;
-    }
-
-    /* === FIX TAMPILAN KARTU KUE CUSTOM === */
-    .custom-banner .product-list {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
-        gap: 15px !important;
-    }
+    .custom-banner .product-list { grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important; gap: 15px !important; }
     .custom-product .info-wrapper { padding: 15px 20px 20px !important; }
     .custom-product .info-wrapper h3 { margin-bottom: 2px !important; font-size: 1.4rem; }
     .custom-product .info-wrapper p { margin-bottom: 5px !important; min-height: 0 !important; line-height: 1.2; font-size: 0.85rem; color: #888; }
     .custom-product .info-wrapper .price { margin-top: 0 !important; display: block; font-weight: 700; }
 
-    /* === STYLE UMUM LAINNYA === */
-    .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
     .marquee-content { display: inline-block; white-space: nowrap; animation: scroll-seamless 40s linear infinite; }
     @keyframes scroll-seamless { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     
-    .empty-cart { text-align: center; padding: 20px; }
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--line-color); }
-    .cart-item:last-child { border-bottom: none; }
-    .item-details { flex: 1; }
-    .item-header { display: flex; align-items: center; margin-bottom: 3px; }
-    .item-header h4 { font-size: 1.1rem; margin: 0 10px 0 0; }
-    .custom-badge { background: var(--accent); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; font-weight: 600; }
-    .item-price { font-size: 0.9rem; color: var(--text-light); display: block; margin-bottom: 3px; }
-    .custom-details { background: var(--bg-cream); padding: 5px 10px; border-radius: 6px; margin-top: 5px; font-size: 0.75rem; }
-    .custom-details p { margin: 2px 0; }
-    .cart-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
-    .quantity-controls { display: flex; align-items: center; border: 1px solid var(--line-color); border-radius: 6px; overflow: hidden; }
-    .qty-btn { width: 28px; height: 28px; background: #fff; border: none; cursor: pointer; font-size: 0.9rem; }
-    .qty-btn:hover { background: var(--bg-cream); }
-    .qty-display { padding: 0 8px; font-weight: 600; min-width: 25px; text-align: center; }
-    .item-subtotal { font-weight: 600; color: var(--accent); font-size: 0.95rem; }
-    .delete-btn { background: none; border: none; color: #c0392b; cursor: pointer; font-size: 0.9rem; padding: 5px; border-radius: 4px; }
-    .delete-btn:hover { background: rgba(192, 57, 43, 0.1); }
-    .cart-total { margin-top: 0; padding: 15px 0 0 0; border-top: 2px solid var(--text-dark); }
-    .total-line { display: flex; justify-content: space-between; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed var(--line-color); }
-    .total-line:last-child { border-bottom: none; }
-    .grand-total { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--line-color); }
-    
     .product-list { gap: 20px !important; }
     .about-container { gap: 30px !important; }
-
-    @media (max-width: 768px) { 
-        .cart-item { flex-direction: column; gap: 10px; } 
-        .cart-controls { flex-direction: row; justify-content: space-between; width: 100%; align-items: center; } 
-    }
   </style>
 </head>
 <body>
@@ -128,8 +59,9 @@ try {
       <li><a href="#home">Beranda</a></li>
       <li><a href="#about">Tentang</a></li>
       <li><a href="#produk">Menu</a></li>
-      <li><a href="custom.php">Custom</a></li>
-      <li><a href="#pesan">Keranjang</a></li> 
+      <li><a href="#custom">Custom</a></li>
+      <li><a href="#lokasi">Kontak</a></li>
+      <li><a href="cart.php" style="font-size: 1.2rem;"><i class="fas fa-shopping-cart"></i> <span id="cart-badge" style="font-size: 0.8rem; vertical-align: top;"></span></a></li> 
     </ul>
   </nav>
 </header>
@@ -146,14 +78,8 @@ try {
 
   <div class="marquee-container">
     <div class="marquee-content">
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
-      <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • 
+      <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • <span><?= set('marquee_text') ?></span> • 
     </div>
   </div>
 
@@ -210,12 +136,11 @@ try {
     <?php endif; ?>
   </section>
 
-  <section class="custom-banner reveal">
+  <section id="custom" class="custom-banner reveal">
     <h2>Kue Custom</h2>
     <p>Punya desain impian? Kami siap mewujudkannya.</p>
     
     <div class="product-list" style="max-width: 1300px; margin: 20px auto 0; text-align: left;">
-      
       <div class="product-card custom-product" data-category="Ulang Tahun Anak" data-name="Kustom Kue" data-price-min="150000" data-price-max="300000">
         <div class="img-wrapper"><img src="https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=500&q=80" alt="Kids Cake"></div>
         <div class="info-wrapper" style="background: #fff; color: var(--text-dark);">
@@ -224,7 +149,6 @@ try {
           <span class="price">Mulai Rp 150k</span>
         </div>
       </div>
-      
       <div class="product-card custom-product" data-category="Pernikahan" data-name="Kustom Kue" data-price-min="500000" data-price-max="2000000">
         <div class="img-wrapper"><img src="https://cdn-image.hipwee.com/wp-content/uploads/2021/10/hipwee-Gold-Wedding-Theme-_-Wedding-Ideas-By-Colour-_-CHWV-500x750.jpg" alt="Wedding"></div>
         <div class="info-wrapper" style="background: #fff; color: var(--text-dark);">
@@ -233,7 +157,6 @@ try {
           <span class="price">Mulai Rp 500k</span>
         </div>
       </div>
-
       <div class="product-card custom-product" data-category="Lamaran" data-name="Kustom Kue" data-price-min="350000" data-price-max="800000">
         <div class="img-wrapper"><img src="https://down-id.img.susercontent.com/file/id-11134207-7rask-m19g6tfbxxr2ad" alt="Lamaran"></div>
         <div class="info-wrapper" style="background: #fff; color: var(--text-dark);">
@@ -246,24 +169,6 @@ try {
     
     <div style="margin-top: 15px;">
       <a href="custom.php" class="btn-primary" style="background-color: #fff; color: var(--accent);">Lihat Katalog Lengkap</a>
-    </div>
-  </section>
-
-  <section id="pesan" class="section reveal" style="margin-top: 0 !important; padding-top: 30px !important;">
-    <div class="section-header" style="margin-bottom: 20px !important;">
-      <h2>Pesanan Anda</h2>
-      <p>Cek kembali pesanan sebelum mengirim via WhatsApp.</p>
-    </div>
-    <div class="cart-container">
-      <div id="cart">
-        <div class="empty-cart">
-          <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--line-color); margin-bottom: 15px;"></i>
-          <p style="text-align:center; color: #999; padding: 10px;">Keranjang masih kosong.</p>
-        </div>
-      </div>
-      <div style="margin-top: 20px; text-align: right;">
-        <button id="checkoutBtn" class="btn-primary dark-hover">Checkout WhatsApp</button>
-      </div>
     </div>
   </section>
 
@@ -370,12 +275,26 @@ try {
     const customDetails = document.getElementById("customDetails");
     const customDate = document.getElementById("customDate");
     const addCustomToCartBtn = document.getElementById("addCustomToCart");
-    const cartDiv = document.getElementById("cart");
-    const checkoutBtn = document.getElementById("checkoutBtn");
 
     let currentProduct = null;
     let currentCustomProduct = null;
-    let cart = [];
+    
+    // === LOGIKA CART GLOBAL (LocalStorage) ===
+    let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
+
+    function saveCart() {
+        localStorage.setItem('ibuangel_cart', JSON.stringify(cart));
+        updateBadge();
+    }
+
+    function updateBadge() {
+        const badge = document.getElementById('cart-badge');
+        const count = cart.reduce((sum, item) => sum + item.qty, 0);
+        if(badge) badge.textContent = count > 0 ? `(${count})` : '';
+    }
+
+    // Panggil saat load
+    updateBadge();
 
     const productSection = document.getElementById('produk');
     if (productSection) {
@@ -408,9 +327,15 @@ try {
     window.onclick = e => { if (e.target == modal) modal.style.display = "none"; if (e.target == customModal) customModal.style.display = "none"; };
 
     addToCartBtn.addEventListener("click", () => {
+      // Cek apakah item sudah ada di cart
       const existingItem = cart.find(item => item.name === currentProduct.name && item.type === 'regular');
-      if (existingItem) { existingItem.qty++; } else { cart.push(currentProduct); }
-      updateCart();
+      if (existingItem) { 
+          existingItem.qty++; 
+      } else { 
+          cart.push(currentProduct); 
+      }
+      saveCart();
+      alert("Produk ditambahkan ke keranjang!");
       modal.style.display = "none";
     });
 
@@ -418,57 +343,9 @@ try {
       if (!customDetails.value || !customDate.value) { alert("Mohon lengkapi detail dan tanggal!"); return; }
       const customItem = { ...currentCustomProduct, details: customDetails.value, date: customDate.value, price: currentCustomProduct.priceMin };
       cart.push(customItem);
-      updateCart();
+      saveCart();
+      alert("Custom cake ditambahkan ke keranjang!");
       customModal.style.display = "none"; customDetails.value = ""; customDate.value = "";
-    });
-
-    function updateCart() {
-      cartDiv.innerHTML = "";
-      if (cart.length === 0) {
-        cartDiv.innerHTML = `<div class="empty-cart"><i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--line-color); margin-bottom: 20px;"></i><p style="text-align:center; color: #999; padding: 20px;">Keranjang masih kosong.</p></div>`;
-        return;
-      }
-      let total = 0;
-      cart.forEach((item, index) => {
-        const itemTotal = item.price * item.qty; total += itemTotal;
-        const div = document.createElement("div"); div.className = "cart-item";
-        const customBadge = item.type === 'custom' ? `<span class="custom-badge">Custom</span>` : '';
-        const customDetails = item.type === 'custom' ? `<div class="custom-details"><p><strong>Kategori:</strong> ${item.category}</p><p><strong>Detail:</strong> ${item.details}</p><p><strong>Tanggal:</strong> ${item.date}</p></div>` : '';
-        div.innerHTML = `<div class="item-details"><div class="item-header"><h4>${item.name}</h4>${customBadge}</div><span class="item-price">Rp ${item.price.toLocaleString('id-ID')}</span>${customDetails}</div><div class="cart-controls"><div class="quantity-controls"><button class="qty-btn" onclick="changeQty(${index}, -1)">-</button><span class="qty-display">${item.qty}</span><button class="qty-btn" onclick="changeQty(${index}, 1)">+</button></div><div class="item-subtotal">Rp ${itemTotal.toLocaleString('id-ID')}</div><button class="delete-btn" onclick="deleteItem(${index})" title="Hapus"><i class="fas fa-trash"></i></button></div>`;
-        cartDiv.appendChild(div);
-      });
-      const totalDiv = document.createElement("div"); totalDiv.className = "cart-total";
-      totalDiv.innerHTML = `<div class="total-line"><span>Subtotal:</span><span>Rp ${total.toLocaleString('id-ID')}</span></div><div class="total-line"><span>Ongkos Kirim:</span><span>Disesuaikan</span></div><div class="total-line grand-total"><span>Total Estimasi:</span><span>Rp ${total.toLocaleString('id-ID')}</span></div>`;
-      cartDiv.appendChild(totalDiv);
-    }
-
-    window.changeQty = function(index, change) {
-      if (cart[index].qty + change > 0) cart[index].qty += change; else if (confirm("Hapus item ini?")) cart.splice(index, 1);
-      updateCart();
-    };
-    window.deleteItem = function(index) { if (confirm("Hapus pesanan ini?")) { cart.splice(index, 1); updateCart(); } };
-    
-    checkoutBtn.addEventListener("click", async () => {
-      if (cart.length === 0) return alert("Keranjang kosong!");
-      const customerName = prompt("Siapa nama pemesan?"); if (!customerName) return; 
-      let total = 0; cart.forEach(item => total += (item.price * item.qty));
-      const orderData = { name: customerName, items: cart, total: total };
-      try {
-          const response = await fetch('save_order.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
-          const result = await response.json();
-          if (result.status === 'success') {
-              let msg = `Halo Ibu Angel, saya *${customerName}* mau pesan:%0A%0A`;
-              cart.forEach((item, i) => {
-                const subtotal = item.price * item.qty;
-                msg += `*${i+1}. ${item.name}* (x${item.qty})%0A`;
-                if(item.type === 'custom') { msg += `   Detail: ${item.details}%0A   Kategori: ${item.category}%0A   Tgl: ${item.date}%0A`; }
-                msg += `   Harga: Rp ${subtotal.toLocaleString('id-ID')}%0A%0A`;
-              });
-              msg += `--------------------%0A*Total: Rp ${total.toLocaleString('id-ID')}*`;
-              window.open(`https://wa.me/6289689433798?text=${msg}`, "_blank");
-              cart = []; updateCart();
-          } else { alert("Gagal menyimpan pesanan, silakan coba lagi."); }
-      } catch (error) { console.error("Error:", error); alert("Terjadi kesalahan koneksi."); }
     });
   </script>
 </body>
