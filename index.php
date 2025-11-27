@@ -47,12 +47,7 @@ try {
   
   <style>
     /* === ACTIVE NAV LINK STYLE === */
-    .nav-links a.active {
-        color: var(--accent) !important;
-        font-weight: 700;
-    }
-
-    /* ... CSS LAINNYA TETAP SAMA ... */
+    .nav-links a.active { color: var(--accent) !important; font-weight: 700; }
     .hero { min-height: auto !important; height: auto !important; padding-top: 160px !important; padding-bottom: 80px !important; display: flex; align-items: center; justify-content: center; }
     .marquee-container { padding: 15px 0 !important; background-color: var(--text-dark) !important; color: var(--bg-cream) !important; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); position: relative; z-index: 10; margin-bottom: 0 !important; }
     .marquee-content span { padding: 0 40px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 0.95rem; }
@@ -345,34 +340,24 @@ try {
   </a>
 
   <script>
-    // === SCROLL SPY NAVIGATION (JS Baru) ===
-    // Menandai link navbar yang aktif berdasarkan posisi scroll
+    // SCROLL SPY
     const sections = document.querySelectorAll(".section-scroll");
     const navLinks = document.querySelectorAll(".nav-link");
-
     window.addEventListener("scroll", () => {
         let current = "";
         sections.forEach((section) => {
             const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (scrollY >= (sectionTop - 200)) {
-                current = section.getAttribute("id");
-            }
+            if (scrollY >= (sectionTop - 200)) current = section.getAttribute("id");
         });
-
         navLinks.forEach((li) => {
             li.classList.remove("active");
-            if (li.getAttribute("href").includes(current)) {
-                li.classList.add("active");
-            }
+            if (li.getAttribute("href").includes(current)) li.classList.add("active");
         });
-        
-        // Navbar shrink effect
         const navbar = document.getElementById('navbar');
         if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
     });
 
-    // Init Cart
+    // CART LOGIC
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
     function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
     function updateBadge() {
@@ -382,10 +367,11 @@ try {
     }
     updateBadge();
 
-    // Scroll Reveal Animation
+    // SCROLL REVEAL
     const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+    // QUANTITY HELPER
     window.changeCardQty = function(id, change) {
         const input = document.getElementById(id);
         let newVal = parseInt(input.value) + change;
@@ -393,6 +379,7 @@ try {
         input.value = newVal;
     };
 
+    // ADD TO CART DIRECT
     window.addToCartWithQty = function(id, name, price, type, category) {
         const qtyInput = document.getElementById('qty-' + id);
         const qty = parseInt(qtyInput.value) || 1;
@@ -403,6 +390,7 @@ try {
         qtyInput.value = 1;
     };
 
+    // CUSTOM MODAL
     const customModal = document.getElementById("customModal");
     const closeCustom = document.getElementById("closeCustom");
     const addCustomBtn = document.getElementById("addCustomToCart");
@@ -428,13 +416,24 @@ try {
     closeCustom.onclick = () => customModal.style.display = "none";
     window.onclick = (e) => { if(e.target == customModal) customModal.style.display = "none"; };
 
+    // === UPDATE LOGIKA: SIMPAN KE KERANJANG ===
     addCustomBtn.addEventListener("click", () => {
       if (!cDetails.value || !cDate.value) { alert("Mohon lengkapi detail dan tanggal!"); return; }
-      const customItem = { ...currentCustomProduct, details: cDetails.value, date: cDate.value, price: currentCustomProduct.priceMin };
+      const customItem = { 
+          name: currentCustomProduct.name, 
+          qty: 1, 
+          price: currentCustomProduct.priceMin, 
+          type: 'custom', 
+          category: currentCustomProduct.category, 
+          details: cDetails.value, 
+          date: cDate.value 
+      };
       cart.push(customItem);
       saveCart();
       alert("Custom cake ditambahkan ke keranjang!");
-      customModal.style.display = "none"; cDetails.value = ""; cDate.value = "";
+      customModal.style.display = "none"; 
+      cDetails.value = ""; 
+      cDate.value = "";
     });
   </script>
 </body>

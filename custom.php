@@ -46,18 +46,21 @@ try {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <style>
-    /* ... (CSS SAMA SEPERTI SEBELUMNYA) ... */
     body { padding-top: 80px; }
     .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
+    
+    /* Header & Section */
     .custom-header { background-color: var(--text-dark); color: #fff; padding: 60px 20px !important; text-align: center; margin-bottom: 0 !important; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
     .custom-header h1 { color: #fff; font-size: 3rem; margin-bottom: 15px; }
     .custom-header p { color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
     .section { padding: 20px 20px 30px !important; }
     
+    /* Filter Buttons */
     .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; margin-top: 30px; }
     .filter-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 0.9rem; text-decoration: none; }
     .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #fff; }
 
+    /* Custom Product Grid */
     .product-list { gap: 15px !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
     .custom-product { position: relative; overflow: hidden; cursor: pointer; }
     .custom-product .img-wrapper { height: 180px !important; position: relative; }
@@ -77,7 +80,7 @@ try {
     .cta-section { background: var(--bg-cream); text-align: center; padding: 50px 20px !important; margin-top: 30px !important; border-top: 1px solid var(--line-color); margin-bottom: 0 !important; }
     .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
     
-    /* STYLE PAGINATION (KOTAK) */
+    /* Pagination */
     .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 40px; }
     .page-link { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border: 1px solid var(--line-color); border-radius: 4px; text-decoration: none; color: var(--text-dark); font-weight: 600; transition: 0.3s; }
     .page-link:hover, .page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
@@ -176,28 +179,29 @@ try {
   <div id="customModal" class="modal">
     <div class="modal-content">
       <span class="close-modal" id="closeCustom">&times;</span>
-      <div class="modal-img-col"><img id="customModalImg" src="" alt="Custom"></div>
+      <div class="modal-img-col">
+        <img id="customModalImg" src="" alt="Custom">
+      </div>
       <div class="modal-info-col">
         <h3 id="customModalName">Custom Cake</h3>
         <p id="customModalCategory" style="font-weight:bold; color:var(--accent);">Kategori</p>
         <p id="customModalPrice">Range Harga</p>
+        
         <div class="modal-form">
           <label>Detail Pesanan</label>
-          <textarea id="customDetails" rows="3" placeholder="Contoh: Tulisan..."></textarea>
+          <textarea id="customDetails" rows="3" placeholder="Tulis tulisan ucapan, request warna, dll..."></textarea>
+          
           <label>Tanggal Diperlukan</label>
           <input type="date" id="customDate">
         </div>
+
         <button id="addCustomToCart" class="btn-primary">Simpan ke Keranjang</button>
       </div>
     </div>
   </div>
 
-  <a href="https://wa.me/6289689433798" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none;">
-    <i class="fab fa-whatsapp"></i>
-  </a>
-
   <script>
-    // Sama seperti sebelumnya
+    // === INIT CART (SAMA DENGAN INDEX.PHP) ===
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
     function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
     function updateBadge() {
@@ -207,24 +211,27 @@ try {
     }
     updateBadge();
 
-    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); }); }, { threshold: 0.1 });
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('active');
+      });
+    }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    window.addEventListener('scroll', () => {
-      const navbar = document.getElementById('navbar');
-      if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
-    });
 
     const customModal = document.getElementById("customModal");
     const closeCustom = document.getElementById("closeCustom");
     const addBtn = document.getElementById("addCustomToCart");
+
     const cName = document.getElementById("customModalName");
     const cImg = document.getElementById("customModalImg");
     const cCat = document.getElementById("customModalCategory");
     const cPrice = document.getElementById("customModalPrice");
     const cDetails = document.getElementById("customDetails");
     const cDate = document.getElementById("customDate");
-    let currentCustomProduct = null;
 
+    let currentProduct = null;
+
+    // EVENT DELEGATION
     document.addEventListener('click', function(e) {
         const prod = e.target.closest('.custom-product');
         if (prod) {
@@ -234,10 +241,12 @@ try {
               priceMin: parseInt(prod.dataset.priceMin),
               priceMax: parseInt(prod.dataset.priceMax)
             };
+            
             cName.textContent = currentProduct.name;
             cImg.src = prod.querySelector("img").src;
             cCat.textContent = currentProduct.category;
             cPrice.textContent = `Estimasi: Rp ${currentProduct.priceMin.toLocaleString('id-ID')} - Rp ${currentProduct.priceMax.toLocaleString('id-ID')}`;
+            
             customModal.style.display = "block";
         }
     });
@@ -245,25 +254,36 @@ try {
     closeCustom.onclick = () => customModal.style.display = "none";
     window.onclick = (e) => { if(e.target == customModal) customModal.style.display = "none"; }
 
+    // === LOGIKA SIMPAN KE KERANJANG (LOCALSTORAGE) ===
     addBtn.addEventListener("click", async () => {
-        if(!cDetails.value || !cDate.value) { alert("Mohon lengkapi detail dan tanggal!"); return; }
-        const customerName = prompt("Siapa nama pemesan?"); if (!customerName) return; 
-        
-        const customItem = { 
-            name: currentProduct.name, qty: 1, price: currentProduct.priceMin, 
-            type: 'custom', category: currentProduct.category, details: cDetails.value, date: cDate.value 
-        };
-        const orderData = { name: customerName, items: [customItem], total: currentProduct.priceMin };
+        if(!cDetails.value || !cDate.value) {
+            alert("Mohon lengkapi detail dan tanggal!");
+            return;
+        }
 
-        try {
-            const response = await fetch('save_order.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
-            const result = await response.json();
-            if (result.status === 'success') {
-                const msg = `Halo Ibu Angel, saya *${customerName}* ingin pesan custom cake dari katalog:%0A%0A*Model:* ${currentProduct.name}%0A*Kategori:* ${currentProduct.category}%0A*Detail Request:* ${cDetails.value}%0A*Tanggal:* ${cDate.value}%0A%0A*Estimasi Awal:* Rp ${currentProduct.priceMin.toLocaleString('id-ID')}%0A Mohon infonya untuk harga fix-nya. Terima kasih!`;
-                window.open(`https://wa.me/6289689433798?text=${msg}`, "_blank");
-                customModal.style.display = "none"; cDetails.value = ""; cDate.value = "";
-            } else { alert("Gagal menyimpan pesanan."); }
-        } catch (error) { console.error("Error:", error); alert("Terjadi kesalahan koneksi."); }
+        // Buat Objek Item Custom
+        const customItem = {
+            name: currentProduct.name,
+            qty: 1,
+            price: currentProduct.priceMin, // Gunakan harga min sebagai estimasi dasar
+            type: 'custom',
+            category: currentProduct.category,
+            details: cDetails.value,
+            date: cDate.value
+        };
+
+        // Masukkan ke Cart
+        cart.push(customItem);
+        
+        // Simpan ke LocalStorage
+        saveCart();
+
+        alert("Custom cake ditambahkan ke keranjang!");
+        
+        // Tutup Modal & Reset
+        customModal.style.display = "none";
+        cDetails.value = "";
+        cDate.value = "";
     });
   </script>
 </body>
