@@ -15,10 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'] ?? '';
     $image_url   = $_POST['image_url'] ?? '';
 
-    // Validasi Sederhana
     if (trim($name) === '') $errors[] = "Nama produk wajib diisi.";
 
-    // Logic Harga: Jika Regular, nol-kan range. Jika Custom, nol-kan price utama.
     if ($type == 'regular') {
         $price_min = 0; $price_max = 0;
     } else {
@@ -27,18 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         try {
-            // Buat Slug Otomatis
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
-            
-            // Query Insert
-            $stmt = $pdo->prepare("INSERT INTO products (slug, name, category, type, price, price_min, price_max, ingredients, description, image_url)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO products (slug, name, category, type, price, price_min, price_max, ingredients, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$slug, $name, $category, $type, $price, $price_min, $price_max, $ingredients, $description, $image_url]);
-            
-            // Redirect ke Dashboard dengan pesan sukses
-            header("Location: dashboard.php?added=1");
+            header("Location: products.php?added=1");
             exit;
-            
         } catch (Exception $e) {
             $errors[] = "Gagal menyimpan: " . $e->getMessage();
         }
@@ -51,15 +42,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tambah Produk - Admin</title>
-    
+    <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        body { padding-top: 100px; background-color: var(--bg-cream); }
+        body { padding-top: 85px; background-color: var(--bg-cream); }
+        .section { padding-top: 20px !important; }
 
+        /* === PERBAIKAN LEBAR FORM === */
         .add-container {
-            max-width: 800px;
+            max-width: 1200px; /* Diperlebar */
+            width: 95%;
             margin: 0 auto 50px;
             background: #fff;
             padding: 40px;
@@ -78,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .add-header h2 { font-size: 2rem; color: var(--text-dark); margin-bottom: 5px; }
         .add-header p { color: var(--text-light); }
 
-        /* Alert Box */
         .alert-error {
             background: #fde8e7;
             border: 1px solid #eabfb9;
@@ -89,119 +82,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .alert-error ul { margin-left: 20px; margin-top: 5px; }
 
-        /* Form Grid Layout */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         .form-group { margin-bottom: 5px; }
         .full-width { grid-column: span 2; }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--text-dark);
-            font-size: 0.9rem;
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
+
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%; padding: 12px 15px; border: 1px solid var(--line-color); border-radius: 6px;
+            font-family: var(--font-body); font-size: 1rem; transition: border-color 0.3s; background: #FAFAFA;
         }
 
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--line-color);
-            border-radius: 6px;
-            font-family: var(--font-body);
-            font-size: 1rem;
-            transition: border-color 0.3s;
-            background: #FAFAFA;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: #fff;
-        }
-
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
         textarea { resize: vertical; min-height: 100px; }
 
-        /* Tombol Button Group */
-        .btn-group {
-            grid-column: span 2;
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-        }
-
+        .btn-group { grid-column: span 2; margin-top: 20px; display: flex; gap: 15px; }
         .btn-cancel {
-            padding: 14px 25px;
-            border: 1px solid var(--line-color);
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-            flex: 1;
-            transition: 0.3s;
+            padding: 14px 25px; border: 1px solid var(--line-color); color: var(--text-light);
+            text-decoration: none; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-align: center; flex: 1; transition: 0.3s;
         }
         .btn-cancel:hover { background: #eee; color: var(--text-dark); }
 
         .btn-save {
-            flex: 2;
-            text-align: center;
-            cursor: pointer;
-            background-color: var(--accent); 
-            border: 1px solid var(--accent);
-            color: #fff;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            flex: 2; text-align: center; cursor: pointer; background-color: var(--accent); 
+            border: 1px solid var(--accent); color: #fff; transition: all 0.3s ease; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
         }
+        .btn-save:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(200, 100, 69, 0.3); }
 
-        .btn-save:hover {
-            background-color: #c86445 !important;
-            border-color: #c86445 !important;
-            color: #fff !important;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(200, 100, 69, 0.3);
-        }
-
-        /* Toggle Animation */
         .price-section { display: none; }
         .price-section.active { display: block; animation: fadeIn 0.3s ease; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="../index.php" class="logo">Ibu Angel</a>
+        <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
         <div class="nav-links">
             <a href="dashboard.php">Dashboard</a>
+            <a href="orders.php">Pesanan</a>
+            <a href="products.php" style="color: var(--accent);">Produk</a>
+            <a href="settings.php">Tampilan</a>
             <a href="logout.php" style="color: #C0392B;">Logout</a>
         </div>
     </nav>
 
     <div class="section reveal active">
         
-        <div style="max-width: 800px; margin: 0 auto 20px;">
-            <a href="dashboard.php" style="color: var(--text-light); text-decoration: none;">
-                <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+        <div style="max-width: 1200px; width: 95%; margin: 0 auto 20px;">
+            <a href="products.php" style="color: var(--text-light); text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Kembali ke Menu Produk
             </a>
         </div>
 
@@ -215,32 +146,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="alert-error">
                 <strong><i class="fas fa-exclamation-triangle"></i> Terjadi Kesalahan:</strong>
                 <ul>
-                    <?php foreach ($errors as $e): ?>
-                        <li><?= htmlspecialchars($e) ?></li>
-                    <?php endforeach; ?>
+                    <?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?>
                 </ul>
             </div>
             <?php endif; ?>
 
             <form method="POST" class="form-grid">
-                
                 <div class="form-group full-width">
                     <label>Nama Produk</label>
                     <input type="text" name="name" required placeholder="Contoh: Nastar Premium" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>">
                 </div>
-
                 <div class="form-group">
                     <label>Kategori</label>
                     <input type="text" name="category" list="catList" placeholder="Pilih atau ketik..." value="<?= htmlspecialchars($_POST['category'] ?? '') ?>">
                     <datalist id="catList">
-                        <option value="Kue Kering">
-                        <option value="Kue & Bolu">
-                        <option value="Ulang Tahun Anak">
-                        <option value="Pernikahan">
-                        <option value="Hampers Lebaran">
+                        <option value="Kue Kering"><option value="Kue & Bolu"><option value="Ulang Tahun Anak"><option value="Pernikahan"><option value="Hampers Lebaran">
                     </datalist>
                 </div>
-
                 <div class="form-group">
                     <label>Jenis Produk</label>
                     <select name="type" id="typeSelect" onchange="togglePriceInputs()">
@@ -248,12 +170,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="custom" <?= (($_POST['type'] ?? '') == 'custom') ? 'selected' : '' ?>>Custom (Range Harga)</option>
                     </select>
                 </div>
-
                 <div id="priceRegular" class="form-group full-width price-section">
                     <label>Harga Satuan (Rp)</label>
                     <input type="number" name="price" placeholder="Contoh: 75000" value="<?= htmlspecialchars($_POST['price'] ?? '') ?>">
                 </div>
-
                 <div id="priceCustom1" class="form-group price-section">
                     <label>Harga Minimum (Rp)</label>
                     <input type="number" name="price_min" placeholder="Min" value="<?= htmlspecialchars($_POST['price_min'] ?? '') ?>">
@@ -262,7 +182,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <label>Harga Maksimum (Rp)</label>
                     <input type="number" name="price_max" placeholder="Max" value="<?= htmlspecialchars($_POST['price_max'] ?? '') ?>">
                 </div>
-
                 <div class="form-group full-width">
                     <label>URL Gambar</label>
                     <div style="display: flex; gap: 10px;">
@@ -270,61 +189,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" onclick="previewImage()" style="padding: 0 15px; border: 1px solid var(--line-color); background: #fff; cursor: pointer; border-radius: 6px;"><i class="fas fa-eye"></i></button>
                     </div>
                 </div>
-
                 <div class="form-group full-width">
                     <label>Bahan Utama</label>
                     <textarea name="ingredients" rows="3" placeholder="Contoh: Tepung terigu, mentega wisman, selai nanas asli..."><?= htmlspecialchars($_POST['ingredients'] ?? '') ?></textarea>
                 </div>
-
                 <div class="form-group full-width">
                     <label>Deskripsi Lengkap</label>
                     <textarea name="description" rows="5" placeholder="Jelaskan rasa, tekstur, dan keunggulan produk ini..."><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
                 </div>
-
                 <div class="btn-group">
-                    <a href="dashboard.php" class="btn-cancel">Batal</a>
+                    <a href="products.php" class="btn-cancel">Batal</a>
                     <button type="submit" class="btn-primary btn-save"><i class="fas fa-save"></i> Simpan Produk</button>
                 </div>
-
             </form>
         </div>
     </div>
 
     <script>
-        // Animasi Masuk
         document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => {
-                document.querySelector('.reveal').classList.add('active');
-            }, 100);
-            togglePriceInputs(); // Jalankan saat load
+            setTimeout(() => { document.querySelector('.reveal').classList.add('active'); }, 100);
+            togglePriceInputs();
         });
-
-        // Toggle Harga berdasarkan Jenis
         function togglePriceInputs() {
             const type = document.getElementById('typeSelect').value;
             const regularGroup = document.getElementById('priceRegular');
             const customGroup1 = document.getElementById('priceCustom1');
             const customGroup2 = document.getElementById('priceCustom2');
-
             if (type === 'regular') {
-                regularGroup.classList.add('active');
-                customGroup1.classList.remove('active');
-                customGroup2.classList.remove('active');
+                regularGroup.classList.add('active'); customGroup1.classList.remove('active'); customGroup2.classList.remove('active');
             } else {
-                regularGroup.classList.remove('active');
-                customGroup1.classList.add('active');
-                customGroup2.classList.add('active');
+                regularGroup.classList.remove('active'); customGroup1.classList.add('active'); customGroup2.classList.add('active');
             }
         }
-
-        // Preview Image
         function previewImage() {
             const url = document.getElementById('imgInput').value;
-            if(url) {
-                window.open(url, '_blank');
-            } else {
-                alert("Masukkan URL gambar terlebih dahulu.");
-            }
+            if(url) { window.open(url, '_blank'); } else { alert("Masukkan URL gambar terlebih dahulu."); }
         }
     </script>
 </body>

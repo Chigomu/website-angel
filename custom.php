@@ -4,9 +4,6 @@ require_once 'app/auth_check.php';
 require_once 'app/db.php'; // Koneksi Database
 require_once 'app/settings_loader.php';
 
-// Cek status login admin
-$isAdmin = !empty($_SESSION['admin_logged_in']);
-
 // === AMBIL DATA CUSTOM DARI DATABASE ===
 try {
     // 1. Ambil semua produk tipe CUSTOM
@@ -46,30 +43,38 @@ function getCategoryEmoji($categoryName) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <style>
+    /* === FIX & SLIMMING DOWN (GAP CUSTOM DIPERKECIL) === */
     body { padding-top: 80px; }
     
+    /* 1. Perbaiki Gap Navbar */
+    .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
+
+    /* 2. Header Lebih Rapat (Margin Bawah = 0) */
     .custom-header {
       background-color: var(--text-dark);
       color: #fff;
-      padding: 100px 20px;
+      padding: 60px 20px !important;
       text-align: center;
-      margin-bottom: 60px;
+      margin-bottom: 0 !important; /* NOL-kan Margin Bawah */
       background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
     }
-    .custom-header h1 { color: #fff; font-size: 3.5rem; margin-bottom: 20px; }
-    .custom-header p { color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; font-size: 1.2rem; }
+    .custom-header h1 { color: #fff; font-size: 3rem; margin-bottom: 15px; }
+    .custom-header p { color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
 
+    /* 3. Section (Padding Atas = 20px agar tidak terlalu nempel) */
+    .section { padding: 20px 20px 30px !important; } 
+    
+    /* 4. CTA Section (Pesan Custom) */
     .cta-section {
       background: var(--bg-cream);
       text-align: center;
-      padding: 80px 20px;
-      margin-top: 80px;
+      padding: 50px 20px !important; 
+      margin-top: 30px !important;   
       border-top: 1px solid var(--line-color);
+      margin-bottom: 0 !important;   
     }
   
-    .cta-section .btn-primary {
-        transition: all 0.3s ease;
-    }
+    .cta-section .btn-primary { transition: all 0.3s ease; }
     .cta-section .btn-primary:hover {
         background-color: #c86445 !important;
         border-color: #c86445 !important;
@@ -77,10 +82,13 @@ function getCategoryEmoji($categoryName) {
         transform: translateY(-2px);
     }
 
+    /* 5. Fix Card Gap */
+    .custom-product .info-wrapper h3 { margin-bottom: 5px !important; }
+    .custom-product .info-wrapper p { margin-bottom: 10px !important; min-height: 0 !important; line-height: 1.3; }
+    .product-list { gap: 25px !important; }
+
     /* === FIX TOMBOL HOVER === */
-    #addCustomToCart {
-        transition: all 0.3s ease;
-    }
+    #addCustomToCart { transition: all 0.3s ease; }
     #addCustomToCart:hover {
         background-color: #c86445 !important; 
         border-color: #c86445 !important;
@@ -88,10 +96,7 @@ function getCategoryEmoji($categoryName) {
         transform: translateY(-2px);
     }
     
-    /* Fix Navbar Titik Hitam (jika style.css belum update) */
-    .nav-links, .nav-links li {
-      list-style: none !important; padding: 0; margin: 0;
-    }
+    footer { margin-top: 0 !important; padding: 50px 20px 30px !important; }
   </style>
 </head>
 <body>
@@ -104,22 +109,27 @@ function getCategoryEmoji($categoryName) {
       <li><a href="index.php#produk">Menu</a></li>
       <li><a href="custom.php" class="active" style="color: var(--accent);">Custom</a></li>
       <li><a href="index.php#pesan">Keranjang</a></li>
-    
     </ul>
   </nav>
 
   <header class="custom-header reveal">
-    <h1>Kue Custom</h1>
-    <p>Wujudkan kue impian untuk momen spesial Anda. Mulai dari Ulang Tahun Anak, Sweet Seventeen, hingga Pernikahan.</p>
+    <h1><?= set('custom_title') ?></h1>
+    <p><?= set('custom_desc') ?></p>
   </header>
 
   <div class="section">
     
     <?php if (!empty($grouped_custom)): ?>
         
-        <?php foreach ($grouped_custom as $category => $products): ?>
-            <div class="reveal" style="margin-top: 60px;">
-                <h3 class="category-title">
+        <?php 
+        $index = 0; // Penghitung untuk menentukan item pertama
+        foreach ($grouped_custom as $category => $products): 
+            // Jika ini kategori PERTAMA (0), margin-top = 10px (biar tidak terlalu nempel banget)
+            // Jika kategori KEDUA dst, margin-top = 50px (pemisah antar kategori)
+            $marginTop = ($index === 0) ? '10px' : '50px';
+        ?>
+            <div class="reveal" style="margin-top: <?= $marginTop ?>;">
+                <h3 class="category-title" style="margin-bottom: 20px;">
                     <?= getCategoryEmoji($category) ?> <?= htmlspecialchars($category) ?>
                 </h3>
                 
@@ -148,7 +158,10 @@ function getCategoryEmoji($categoryName) {
                     <?php endforeach; ?>
                 </div>
             </div>
-        <?php endforeach; ?>
+        <?php 
+        $index++; // Naikkan counter setelah looping 1 kategori selesai
+        endforeach; 
+        ?>
 
     <?php else: ?>
         <div class="reveal" style="text-align: center; padding: 50px;">
@@ -160,14 +173,19 @@ function getCategoryEmoji($categoryName) {
   </div>
 
   <section class="cta-section reveal">
-    <h2 style="font-size: 2.5rem; margin-bottom: 20px;">Punya Desain Sendiri?</h2>
-    <p style="font-size: 1.1rem; color: var(--text-light); margin-bottom: 40px;">Konsultasikan ide kue impian Anda langsung dengan Ibu Angel.</p>
+    <h2 style="font-size: 2.5rem; margin-bottom: 20px;"><?= set('cta_title') ?></h2>
+    <p style="font-size: 1.1rem; color: var(--text-light); margin-bottom: 40px;"><?= set('cta_desc') ?></p>
     <a href="https://wa.me/6289689433798?text=Halo%20Ibu%20Angel,%20saya%20ingin%20konsultasi%20kue%20custom." target="_blank" class="btn-primary">Chat via WhatsApp</a>
   </section>
 
   <footer>
     <span class="footer-logo">Ibu Angel</span>
     <p>Dibuat dengan cinta dan bahan terbaik.</p>
+    <div class="socials" style="margin-top: 15px;">
+      <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
+      <a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+    </div>
     <p style="margin-top: 50px; font-size: 0.8rem; opacity: 0.5;">© 2025 Ibu Angel Bakery.</p>
   </footer>
 

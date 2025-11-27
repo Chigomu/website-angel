@@ -29,8 +29,19 @@ $total_pages = ceil($total / $limit);
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body { padding-top: 100px; }
-    /* Style Tabel & Pagination (Sama seperti sebelumnya) */
+    /* === FIX JARAK (GAP) === */
+    body { 
+        padding-top: 85px; /* Disesuaikan agar pas di bawah navbar */
+        background-color: var(--bg-cream); 
+    }
+    
+    /* Override padding section khusus halaman ini agar naik ke atas */
+    .section {
+        padding-top: 20px !important;
+        padding-bottom: 40px !important;
+    }
+
+    /* Style Tabel & Pagination */
     .table-container { background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid var(--line-color); margin-top: 20px; }
     .product-table { width: 100%; border-collapse: collapse; font-family: var(--font-body); }
     .product-table th { background-color: var(--text-dark); color: var(--bg-cream); padding: 18px; text-align: left; }
@@ -48,14 +59,12 @@ $total_pages = ceil($total / $limit);
 </head>
 <body>
 
-  <!-- NAVBAR (UPDATED LINK) -->
   <nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
-        <a href="products.php" style="color: var(--accent);">Produk</a>
-        <a href="settings.php">Tampilan</a>
+        <a href="products.php" style="color: var(--accent);">Produk</a> <a href="settings.php">Tampilan</a>
         <a href="logout.php" style="color: #C0392B;">Logout</a>
     </div>
   </nav>
@@ -63,8 +72,7 @@ $total_pages = ceil($total / $limit);
   <div class="section">
     <div class="admin-container">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2>Daftar Produk</h2>
-        <a href="add_product.php" class="btn-add"><i class="fas fa-plus"></i> Tambah Baru</a>
+        <h2 style="margin:0;">Daftar Produk</h2> <a href="add_product.php" class="btn-add"><i class="fas fa-plus"></i> Tambah Baru</a>
       </div>
 
       <?php if(isset($_GET['updated'])): ?><p style="color: green; text-align: center;">Data berhasil diupdate!</p><?php endif; ?>
@@ -109,7 +117,6 @@ $total_pages = ceil($total / $limit);
         </table>
       </div>
       
-      <!-- Pagination -->
       <div class="pagination">
         <?php for ($i=1; $i <= $total_pages; $i++): ?>
           <a href="?page=<?= $i ?>" class="<?= ($i == $page ? 'active' : '') ?>"><?= $i ?></a>
@@ -117,5 +124,11 @@ $total_pages = ceil($total / $limit);
       </div>
     </div>
   </div>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => { document.querySelector('.reveal').classList.add('active'); }, 100);
+    });
+  </script>
 </body>
 </html>

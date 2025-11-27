@@ -35,8 +35,18 @@ try {
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { padding-top: 100px; background-color: var(--bg-cream); }
+        /* === FIX JARAK (GAP) === */
+        body { 
+            padding-top: 85px; /* Disesuaikan agar pas di bawah navbar */
+            background-color: var(--bg-cream); 
+        }
         
+        /* Override padding section khusus halaman ini agar naik ke atas */
+        .section {
+            padding-top: 20px !important;
+            padding-bottom: 40px !important;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -96,13 +106,11 @@ try {
 </nav>
 
 <div class="section reveal active">
-    <h2 style="text-align:center; margin-bottom: 10px;">Selamat Datang, Ibu Angel!</h2>
-    <p style="text-align:center; color: var(--text-light); margin-bottom: 50px;">Berikut adalah ringkasan aktivitas toko hari ini.</p>
+    <h2 style="text-align:center; margin-bottom: 10px; margin-top: 0;">Selamat Datang, Ibu Angel!</h2>
+    <p style="text-align:center; color: var(--text-light); margin-bottom: 50px;">Berikut adalah ringkasan aktivitas toko saat ini.</p>
 
-    <!-- STATISTIK PESANAN -->
     <div class="section-title">Ringkasan Pesanan</div>
     <div class="dashboard-grid">
-        <!-- Pending -->
         <div class="stat-card">
             <div class="stat-icon bg-orange"><i class="fas fa-clock"></i></div>
             <div class="stat-info">
@@ -110,7 +118,6 @@ try {
                 <p>Menunggu</p>
             </div>
         </div>
-        <!-- Processed -->
         <div class="stat-card">
             <div class="stat-icon bg-blue"><i class="fas fa-spinner"></i></div>
             <div class="stat-info">
@@ -118,7 +125,6 @@ try {
                 <p>Diproses</p>
             </div>
         </div>
-        <!-- Total Orders -->
         <div class="stat-card">
             <div class="stat-icon bg-green"><i class="fas fa-shopping-bag"></i></div>
             <div class="stat-info">
@@ -126,7 +132,6 @@ try {
                 <p>Total Pesanan</p>
             </div>
         </div>
-        <!-- Revenue (Opsional) -->
         <div class="stat-card">
             <div class="stat-icon bg-brown"><i class="fas fa-coins"></i></div>
             <div class="stat-info">
@@ -136,10 +141,8 @@ try {
         </div>
     </div>
 
-    <!-- STATISTIK PRODUK -->
     <div class="section-title" style="margin-top: 50px;">Ringkasan Produk</div>
     <div class="dashboard-grid">
-        <!-- Reguler -->
         <div class="stat-card">
             <div class="stat-icon" style="background: #FCE4EC; color: #C2185B;"><i class="fas fa-cookie"></i></div>
             <div class="stat-info">
@@ -147,7 +150,6 @@ try {
                 <p>Kue Reguler</p>
             </div>
         </div>
-        <!-- Custom -->
         <div class="stat-card">
             <div class="stat-icon" style="background: #F3E5F5; color: #7B1FA2;"><i class="fas fa-birthday-cake"></i></div>
             <div class="stat-info">
@@ -155,7 +157,6 @@ try {
                 <p>Katalog Custom</p>
             </div>
         </div>
-        <!-- Pintasan -->
         <a href="add_product.php" class="stat-card" style="text-decoration: none; border: 2px dashed var(--accent); justify-content: center;">
             <div style="color: var(--accent); font-weight: 600;">
                 <i class="fas fa-plus-circle"></i> Tambah Produk Baru

@@ -13,9 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-// === PERBAIKAN DI SINI ===
-// Ubah "SELECT *" menjadi "SELECT setting_key, setting_value"
-// Agar PDO::FETCH_KEY_PAIR bekerja (hanya boleh 2 kolom: key & value)
+// Ambil data (Hanya 2 kolom agar PDO::FETCH_KEY_PAIR jalan)
 $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings");
 $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR); 
 ?>
@@ -27,15 +25,30 @@ $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
     <link rel="stylesheet" href="../style.css">
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <style>
-        body { padding-top: 100px; background: var(--bg-cream); }
-        .container { max-width: 800px; margin: 0 auto 50px; background: #fff; padding: 40px; border-radius: 12px; border: 1px solid var(--line-color); }
+        /* === FIX JARAK & LEBAR === */
+        body { padding-top: 85px; background: var(--bg-cream); }
+        
+        .container { 
+            max-width: 1200px; /* Diperlebar agar gap kiri-kanan berkurang */
+            width: 95%;        /* Responsif */
+            margin: 0 auto 50px; 
+            background: #fff; 
+            padding: 40px; 
+            border-radius: 12px; 
+            border: 1px solid var(--line-color); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+
         h3 { border-bottom: 2px solid var(--line-color); padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px; color: var(--accent); }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-dark); }
-        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px; font-family: inherit; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 15px; font-family: inherit; background-color: #fafafa; }
+        input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--accent); background-color: #fff; }
         textarea { min-height: 100px; resize: vertical; }
-        .btn-save { background: var(--text-dark); color: #fff; padding: 15px 30px; border: none; cursor: pointer; width: 100%; font-size: 1.1rem; transition: 0.3s; }
+        
+        .btn-save { background: var(--text-dark); color: #fff; padding: 15px 30px; border: none; cursor: pointer; width: 100%; font-size: 1.1rem; transition: 0.3s; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
         .btn-save:hover { background: var(--accent); }
-        .alert { background: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 5px; text-align: center; }
+        
+        .alert { background: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border-radius: 5px; text-align: center; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body>
@@ -43,9 +56,9 @@ $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
   <nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
+        <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
         <a href="products.php">Produk</a>
-        <a href="dashboard.php">Dashboard</a>
         <a href="settings.php" style="color: var(--accent);">Tampilan</a>
         <a href="logout.php" style="color: #C0392B;">Logout</a>
     </div>
@@ -107,7 +120,6 @@ $data = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
         <label>Link Google Maps (Embed URL)</label>
         <input type="text" name="settings[gmaps_url]" value="<?= htmlspecialchars($data['gmaps_url'] ?? '') ?>" placeholder="https://www.google.com/maps/embed?pb=...">
         
-        <!-- Tombol Simpan ada di bawah ini -->
         <button type="submit" class="btn-save">Simpan Perubahan</button>
     </form>
 </div>
