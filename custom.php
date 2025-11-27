@@ -3,28 +3,36 @@ require_once 'app/auth_check.php';
 require_once 'app/db.php'; 
 require_once 'app/settings_loader.php';
 
-// ... (Kode Ambil Data Custom Sama Seperti Sebelumnya) ...
-// (Agar ringkas, saya tidak menulis ulang logika PHP di atas yang sama, 
-//  asumsikan logika PHP pengambilan data tetap ada)
+// === PAGINATION CUSTOM (LIMIT 10) ===
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
+$category_filter = isset($_GET['category']) ? $_GET['category'] : '';
+
 try {
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE type = 'custom' ORDER BY category ASC, created_at DESC");
+    $stmt_cat = $pdo->query("SELECT DISTINCT category FROM products WHERE type = 'custom' ORDER BY category ASC");
+    $categories = $stmt_cat->fetchAll(PDO::FETCH_COLUMN);
+
+    $sql_count = "SELECT COUNT(*) FROM products WHERE type = 'custom'";
+    if ($category_filter && $category_filter !== 'all') $sql_count .= " AND category = :cat";
+    $stmt_count = $pdo->prepare($sql_count);
+    if ($category_filter && $category_filter !== 'all') $stmt_count->bindValue(':cat', $category_filter);
+    $stmt_count->execute();
+    $total_items = $stmt_count->fetchColumn();
+    $total_pages = ceil($total_items / $limit);
+
+    $sql_products = "SELECT * FROM products WHERE type = 'custom'";
+    if ($category_filter && $category_filter !== 'all') $sql_products .= " AND category = :cat";
+    $sql_products .= " ORDER BY category ASC, created_at DESC LIMIT :limit OFFSET :offset";
+    
+    $stmt = $pdo->prepare($sql_products);
+    if ($category_filter && $category_filter !== 'all') $stmt->bindValue(':cat', $category_filter);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
     $all_custom = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $grouped_custom = [];
-    foreach ($all_custom as $p) {
-        $cat = $p['category'] ?: 'Lainnya';
-        $grouped_custom[$cat][] = $p;
-    }
-} catch (Exception $e) { $grouped_custom = []; }
 
-function getCategoryEmoji($categoryName) {
-    if (stripos($categoryName, 'Ulang Tahun') !== false) return '🎈';
-    if (stripos($categoryName, 'Pernikahan') !== false || stripos($categoryName, 'Lamaran') !== false) return '💍';
-    if (stripos($categoryName, 'Seventeen') !== false || stripos($categoryName, 'Remaja') !== false) return '💄';
-    if (stripos($categoryName, 'Wisuda') !== false) return '🎓';
-    if (stripos($categoryName, 'Lebaran') !== false) return '🕌';
-    return '✨'; 
-}
+} catch (Exception $e) { $all_custom = []; $categories = []; }
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -38,19 +46,42 @@ function getCategoryEmoji($categoryName) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <style>
-    /* ... (CSS Sama Seperti Sebelumnya) ... */
+    /* ... (CSS SAMA SEPERTI SEBELUMNYA) ... */
     body { padding-top: 80px; }
     .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
-    .custom-header { background-color: var(--text-dark); color: #fff; padding: 60px 20px !important; text-align: center; margin-bottom: 30px !important; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
+    .custom-header { background-color: var(--text-dark); color: #fff; padding: 60px 20px !important; text-align: center; margin-bottom: 0 !important; background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); }
     .custom-header h1 { color: #fff; font-size: 3rem; margin-bottom: 15px; }
     .custom-header p { color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
-    .section { padding: 30px 20px !important; } 
+    .section { padding: 20px 20px 30px !important; }
+    
+    .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; margin-top: 30px; }
+    .filter-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 0.9rem; text-decoration: none; }
+    .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #fff; }
+
+    .product-list { gap: 15px !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+    .custom-product { position: relative; overflow: hidden; cursor: pointer; }
+    .custom-product .img-wrapper { height: 180px !important; position: relative; }
+    .custom-product .img-wrapper img { transition: transform 0.5s ease; }
+    
+    .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 24, 16, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; border-radius: 8px 8px 0 0; }
+    .hover-btn { background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; transform: translateY(20px); transition: transform 0.3s ease; }
+    .custom-product:hover .hover-overlay { opacity: 1; }
+    .custom-product:hover .hover-btn { transform: translateY(0); }
+    .custom-product:hover .img-wrapper img { transform: scale(1.1); }
+
+    .custom-product .info-wrapper { padding: 15px !important; text-align: left !important; }
+    .custom-product .info-wrapper h3 { font-size: 1.1rem !important; margin-bottom: 5px !important; }
+    .custom-product .info-wrapper p { font-size: 0.8rem !important; color: #888; margin-bottom: 5px !important; min-height: 0 !important; line-height: 1.3; }
+    .custom-product .info-wrapper .price { margin-top: 0 !important; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+
     .cta-section { background: var(--bg-cream); text-align: center; padding: 50px 20px !important; margin-top: 30px !important; border-top: 1px solid var(--line-color); margin-bottom: 0 !important; }
-    .cta-section .btn-primary:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
-    .custom-product .info-wrapper h3 { margin-bottom: 5px !important; }
-    .custom-product .info-wrapper p { margin-bottom: 10px !important; min-height: 0 !important; line-height: 1.3; }
-    .product-list { gap: 25px !important; }
-    #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
+    .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
+    
+    /* STYLE PAGINATION (KOTAK) */
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 40px; }
+    .page-link { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border: 1px solid var(--line-color); border-radius: 4px; text-decoration: none; color: var(--text-dark); font-weight: 600; transition: 0.3s; }
+    .page-link:hover, .page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
+
     footer { margin-top: 0 !important; padding: 40px 20px 20px !important; }
   </style>
 </head>
@@ -74,27 +105,55 @@ function getCategoryEmoji($categoryName) {
   </header>
 
   <div class="section">
-    <?php if (!empty($grouped_custom)): ?>
-        <?php foreach ($grouped_custom as $category => $products): ?>
-            <div class="reveal" style="margin-top: 30px;">
-                <h3 class="category-title" style="margin-bottom: 20px;"><?= getCategoryEmoji($category) ?> <?= htmlspecialchars($category) ?></h3>
-                <div class="product-list">
-                    <?php foreach ($products as $p): ?>
-                        <div class="product-card custom-product" data-category="<?= htmlspecialchars($p['category']) ?>" data-name="<?= htmlspecialchars($p['name']) ?>" data-price-min="<?= $p['price_min'] ?>" data-price-max="<?= $p['price_max'] ?>">
-                            <div class="img-wrapper"><img src="<?= htmlspecialchars($p['image_url']) ?>" alt="<?= htmlspecialchars($p['name']) ?>" onerror="this.src='https://placehold.co/400x400?text=No+Image'"></div>
-                            <div class="info-wrapper">
-                                <h3><?= htmlspecialchars($p['name']) ?></h3>
-                                <p><?= htmlspecialchars(substr($p['description'], 0, 60)) . (strlen($p['description']) > 60 ? '...' : '') ?></p>
-                                <span class="price">Mulai Rp <?= number_format($p['price_min'], 0, ',', '.') ?></span>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
+    
+    <div class="filter-container reveal">
+        <a href="?category=all" class="filter-btn <?= (!$category_filter || $category_filter == 'all') ? 'active' : '' ?>">Semua</a>
+        <?php foreach($categories as $cat): ?>
+            <a href="?category=<?= urlencode($cat) ?>" class="filter-btn <?= ($category_filter == $cat) ? 'active' : '' ?>">
+                <?= htmlspecialchars($cat) ?>
+            </a>
         <?php endforeach; ?>
-    <?php else: ?>
-        <div class="reveal" style="text-align: center; padding: 50px;"><p style="color: var(--text-light);">Belum ada katalog custom cake saat ini.</p></div>
+    </div>
+
+    <div class="product-list">
+        <?php if(!empty($all_custom)): ?>
+            <?php foreach($all_custom as $p): ?>
+                <div class="product-card custom-product item-card" 
+                     data-category="<?= htmlspecialchars($p['category']) ?>"
+                     data-name="<?= htmlspecialchars($p['name']) ?>"
+                     data-price-min="<?= $p['price_min'] ?>"
+                     data-price-max="<?= $p['price_max'] ?>">
+                     
+                    <div class="img-wrapper">
+                        <img src="<?= htmlspecialchars($p['image_url']) ?>" alt="<?= htmlspecialchars($p['name']) ?>" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+                        <div class="hover-overlay"><span class="hover-btn">Pesan Sekarang</span></div>
+                    </div>
+                    
+                    <div class="info-wrapper">
+                        <h3><?= htmlspecialchars($p['name']) ?></h3>
+                        <p><?= htmlspecialchars(substr($p['description'], 0, 50)) ?></p>
+                        <span class="price">Mulai Rp <?= number_format($p['price_min'], 0, ',', '.') ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p style="text-align: center; width:100%;">Belum ada katalog custom.</p>
+        <?php endif; ?>
+    </div>
+
+    <?php if($total_pages > 1): ?>
+    <div class="pagination reveal">
+        <?php 
+            $catParam = ($category_filter && $category_filter !== 'all') ? '&category='.urlencode($category_filter) : '';
+        ?>
+        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+            <a href="?page=<?= $i ?><?= $catParam ?>" class="page-link <?= ($i == $page) ? 'active' : '' ?>">
+                <?= $i ?>
+            </a>
+        <?php endfor; ?>
+    </div>
     <?php endif; ?>
+
   </div>
 
   <section class="cta-section reveal">
@@ -124,18 +183,36 @@ function getCategoryEmoji($categoryName) {
         <p id="customModalPrice">Range Harga</p>
         <div class="modal-form">
           <label>Detail Pesanan</label>
-          <textarea id="customDetails" rows="3" placeholder="Tulis tulisan ucapan, request warna, dll..."></textarea>
+          <textarea id="customDetails" rows="3" placeholder="Contoh: Tulisan..."></textarea>
           <label>Tanggal Diperlukan</label>
           <input type="date" id="customDate">
         </div>
-        <button id="addCustomToCart" class="btn-primary">Pesan via WhatsApp</button>
+        <button id="addCustomToCart" class="btn-primary">Simpan ke Keranjang</button>
       </div>
     </div>
   </div>
 
+  <a href="https://wa.me/6289689433798" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none;">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
   <script>
-    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); }); }, { threshold: 0.1 });
+    // Sama seperti sebelumnya
+    let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
+    function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
+    function updateBadge() {
+        const badge = document.getElementById('cart-badge');
+        const count = cart.reduce((sum, item) => sum + item.qty, 0);
+        if(badge) badge.textContent = count > 0 ? `(${count})` : '';
+    }
+    updateBadge();
+
+    const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    window.addEventListener('scroll', () => {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
+    });
 
     const customModal = document.getElementById("customModal");
     const closeCustom = document.getElementById("closeCustom");
@@ -146,22 +223,17 @@ function getCategoryEmoji($categoryName) {
     const cPrice = document.getElementById("customModalPrice");
     const cDetails = document.getElementById("customDetails");
     const cDate = document.getElementById("customDate");
-    let currentProduct = null;
-
-    // === LOGIKA CART (Sama dengan index.php) ===
-    let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
-    function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
-    function updateBadge() {
-        const badge = document.getElementById('cart-badge');
-        const count = cart.reduce((sum, item) => sum + item.qty, 0);
-        if(badge) badge.textContent = count > 0 ? `(${count})` : '';
-    }
-    updateBadge(); // Init
+    let currentCustomProduct = null;
 
     document.addEventListener('click', function(e) {
         const prod = e.target.closest('.custom-product');
         if (prod) {
-            currentProduct = { name: prod.dataset.name, category: prod.dataset.category, priceMin: parseInt(prod.dataset.priceMin), priceMax: parseInt(prod.dataset.priceMax) };
+            currentProduct = {
+              name: prod.dataset.name,
+              category: prod.dataset.category,
+              priceMin: parseInt(prod.dataset.priceMin),
+              priceMax: parseInt(prod.dataset.priceMax)
+            };
             cName.textContent = currentProduct.name;
             cImg.src = prod.querySelector("img").src;
             cCat.textContent = currentProduct.category;
@@ -173,27 +245,25 @@ function getCategoryEmoji($categoryName) {
     closeCustom.onclick = () => customModal.style.display = "none";
     window.onclick = (e) => { if(e.target == customModal) customModal.style.display = "none"; }
 
-    // === ADD CUSTOM TO CART LOGIC ===
     addBtn.addEventListener("click", async () => {
         if(!cDetails.value || !cDate.value) { alert("Mohon lengkapi detail dan tanggal!"); return; }
-        // Untuk custom di halaman katalog, logic "Pesan" sebenarnya adalah ADD TO CART
-        // Tapi jika tombolnya "Pesan via WhatsApp", berarti langsung checkout satu item ini saja?
-        // Sesuai permintaan "keranjang dipisah", sebaiknya ini masuk keranjang.
+        const customerName = prompt("Siapa nama pemesan?"); if (!customerName) return; 
         
         const customItem = { 
-            name: currentProduct.name, 
-            qty: 1, 
-            price: currentProduct.priceMin, // Gunakan harga min sbg estimasi
-            type: 'custom', 
-            category: currentProduct.category, 
-            details: cDetails.value, 
-            date: cDate.value 
+            name: currentProduct.name, qty: 1, price: currentProduct.priceMin, 
+            type: 'custom', category: currentProduct.category, details: cDetails.value, date: cDate.value 
         };
-        
-        cart.push(customItem);
-        saveCart();
-        alert("Custom cake ditambahkan ke keranjang!");
-        customModal.style.display = "none"; cDetails.value = ""; cDate.value = "";
+        const orderData = { name: customerName, items: [customItem], total: currentProduct.priceMin };
+
+        try {
+            const response = await fetch('save_order.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
+            const result = await response.json();
+            if (result.status === 'success') {
+                const msg = `Halo Ibu Angel, saya *${customerName}* ingin pesan custom cake dari katalog:%0A%0A*Model:* ${currentProduct.name}%0A*Kategori:* ${currentProduct.category}%0A*Detail Request:* ${cDetails.value}%0A*Tanggal:* ${cDate.value}%0A%0A*Estimasi Awal:* Rp ${currentProduct.priceMin.toLocaleString('id-ID')}%0A Mohon infonya untuk harga fix-nya. Terima kasih!`;
+                window.open(`https://wa.me/6289689433798?text=${msg}`, "_blank");
+                customModal.style.display = "none"; cDetails.value = ""; cDate.value = "";
+            } else { alert("Gagal menyimpan pesanan."); }
+        } catch (error) { console.error("Error:", error); alert("Terjadi kesalahan koneksi."); }
     });
   </script>
 </body>
