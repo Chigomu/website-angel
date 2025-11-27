@@ -2,39 +2,55 @@
 require_once __DIR__ . '/../app/auth_check.php';
 require_once __DIR__ . '/../app/db.php';
 
-// === LOGIC: HANDLE POST REQUESTS (UPDATE & DELETE) ===
+// === LOGIC: UPDATE & DELETE ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    // 1. HAPUS PESANAN
     if (isset($_POST['action']) && $_POST['action'] === 'delete') {
         $id = intval($_POST['order_id']);
         $stmt = $pdo->prepare("DELETE FROM orders WHERE id = ?");
         $stmt->execute([$id]);
-        
-        header("Location: orders.php?msg=deleted");
-        exit;
+        header("Location: orders.php?msg=deleted"); exit;
     }
-
-    // 2. UPDATE STATUS
     if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
         $id = intval($_POST['order_id']);
         $new_status = $_POST['status'];
-        
-        $valid_statuses = ['pending', 'processed', 'completed', 'cancelled'];
-        
-        if (in_array($new_status, $valid_statuses)) {
-            $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $stmt->execute([$new_status, $id]);
-        }
-        
-        header("Location: orders.php?msg=updated");
-        exit;
+        $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->execute([$new_status, $id]);
+        header("Location: orders.php?msg=updated"); exit;
     }
 }
 
-// Ambil data orders
-$stmt = $pdo->query("SELECT * FROM orders ORDER BY created_at DESC");
+// === LOGIC: FILTER & PAGINATION ===
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$limit = 10; 
+$offset = ($page - 1) * $limit;
+$status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
+
+$sql_base = "FROM orders";
+$params = [];
+
+if ($status_filter !== 'all') {
+    $sql_base .= " WHERE status = ?";
+    $params[] = $status_filter;
+}
+
+$stmt_count = $pdo->prepare("SELECT COUNT(*) " . $sql_base);
+$stmt_count->execute($params);
+$total_items = $stmt_count->fetchColumn();
+$total_pages = ceil($total_items / $limit);
+
+$sql_final = "SELECT * " . $sql_base . " ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
+$stmt = $pdo->prepare($sql_final);
+$stmt->execute($params);
 $orders = $stmt->fetchAll();
+
+function countStatus($pdo, $status) {
+    return $pdo->query("SELECT COUNT(*) FROM orders WHERE status = '$status'")->fetchColumn();
+}
+$cnt_pending = countStatus($pdo, 'pending');
+$cnt_processed = countStatus($pdo, 'processed');
+$cnt_completed = countStatus($pdo, 'completed');
+$cnt_cancelled = countStatus($pdo, 'cancelled');
+$cnt_all = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -46,86 +62,98 @@ $orders = $stmt->fetchAll();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        body { padding-top: 100px; background-color: var(--bg-cream); }
+        body { padding-top: 85px; background-color: var(--bg-cream); }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         
-        .order-card {
-            background: white;
-            border: 1px solid var(--line-color);
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-            transition: transform 0.2s;
+        /* === TAB FILTER (WARNA DINAMIS) === */
+        .status-tabs {
+            display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px;
+            border-bottom: 1px solid var(--line-color);
         }
-        .order-card:hover { transform: translateY(-2px); }
-
-        .order-header {
-            display: flex; justify-content: space-between;
-            border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;
-        }
-        
-        .item-list { list-style: none; padding: 0; }
-        .item-list li { padding: 5px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; }
-        
-        .total { font-weight: bold; color: var(--accent); font-size: 1.2rem; text-align: right; margin-top: 10px;}
-        
-        /* === STYLE BADGE STATUS MODERN === */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-family: var(--font-body);
-            transition: all 0.3s ease;
+        .tab-link {
+            text-decoration: none; padding: 8px 18px; border-radius: 30px; font-size: 0.9rem; font-weight: 600;
+            color: var(--text-light); transition: 0.3s; white-space: nowrap; display: flex; align-items: center; gap: 8px;
             border: 1px solid transparent;
         }
-        .badge::before {
-            content: ''; display: inline-block; width: 8px; height: 8px;
-            border-radius: 50%; background-color: currentColor; opacity: 0.7;
-        }
-
-        /* Warna Status */
-        .badge.completed { background-color: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
-        .badge.pending { background-color: #FFF3E0; color: #EF6C00; border-color: #FFE0B2; }
-        .badge.processed { background-color: #E3F2FD; color: #1565C0; border-color: #BBDEFB; }
-        .badge.cancelled { background-color: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
-
-        /* Actions */
-        .order-actions {
-            margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .status-form { display: flex; gap: 10px; align-items: center; }
+        .tab-link:hover { background: #eee; color: var(--text-dark); }
         
-        .status-select {
-            padding: 6px 10px; border: 1px solid var(--line-color);
-            border-radius: 4px; background: #fafafa;
-            font-family: var(--font-body); color: var(--text-dark); cursor: pointer;
+        /* Warna Aktif per Status */
+        .tab-link.active[data-status="all"] { background: var(--accent); color: #fff; }
+        .tab-link.active[data-status="pending"] { background: #FFF3E0; color: #EF6C00; border-color: #FFE0B2; }
+        .tab-link.active[data-status="processed"] { background: #E3F2FD; color: #1565C0; border-color: #BBDEFB; }
+        .tab-link.active[data-status="completed"] { background: #E8F5E9; color: #2E7D32; border-color: #C8E6C9; }
+        .tab-link.active[data-status="cancelled"] { background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
+
+        .counter-badge {
+            background: rgba(0,0,0,0.1); font-size: 0.75rem; padding: 2px 8px; border-radius: 12px;
         }
         
-        .btn-update {
-            background: var(--text-dark); color: #fff; border: none;
-            padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-size: 0.85rem; transition: 0.3s;
+        /* === GRID ORDER (2 KOLOM) === */
+        .order-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 Kolom */
+            gap: 20px;
         }
-        .btn-update:hover { background: var(--accent); }
 
-        .btn-delete {
-            background: transparent; color: #c0392b; border: 1px solid #c0392b;
-            padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-size: 0.85rem; transition: 0.3s;
+        .order-card {
+            background: white; border: 1px solid var(--line-color); border-radius: 10px;
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative; overflow: hidden;
         }
-        .btn-delete:hover { background: #c0392b; color: white; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
         
-        .alert { padding: 10px; margin-bottom: 20px; border-radius: 4px; text-align: center; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        /* Header Kartu */
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px dashed #eee; padding-bottom: 12px; }
+        .order-id { font-size: 0.85rem; color: #888; font-weight: 600; letter-spacing: 0.5px; }
+        .cust-name { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-top: 2px; display: block; }
+        .order-date { font-size: 0.8rem; color: #aaa; margin-top: 2px; display: block; }
 
+        /* List Barang (Compact) */
+        .card-items { flex-grow: 1; font-size: 0.9rem; color: #555; line-height: 1.5; }
+        .item-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .more-items { font-size: 0.8rem; color: #888; font-style: italic; margin-top: 5px; }
+
+        /* Footer Kartu */
+        .card-footer { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-top: auto; padding-top: 12px; border-top: 1px solid #eee; 
+        }
+        .total-price { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        
+        .action-group { display: flex; gap: 8px; }
+        .btn-icon {
+            width: 34px; height: 34px; border-radius: 6px; border: 1px solid #eee; background: #fff;
+            color: var(--text-light); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-icon:hover { background: #f5f5f5; color: var(--text-dark); border-color: #ccc; }
+        .btn-icon.delete:hover { background: #c0392b; color: #fff; border-color: #c0392b; }
+
+        /* STATUS BADGE */
+        .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge.pending { background: #FFF3E0; color: #EF6C00; }
+        .badge.processed { background: #E3F2FD; color: #1565C0; }
+        .badge.completed { background: #E8F5E9; color: #2E7D32; }
+        .badge.cancelled { background: #FFEBEE; color: #C62828; }
+
+        /* PAGINATION */
+        .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 30px; }
+        .page-link {
+            display: flex; align-items: center; justify-content: center; width: 35px; height: 35px;
+            border: 1px solid var(--line-color); border-radius: 4px; text-decoration: none;
+            color: var(--text-dark); font-weight: 600; transition: 0.3s;
+        }
+        .page-link:hover, .page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        /* RESPONSIVE MOBILE */
+        @media (max-width: 768px) {
+            .order-grid { grid-template-columns: 1fr; } /* Jadi 1 kolom di HP */
+        }
+
+        /* MODAL */
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-box { background: #fff; padding: 25px; border-radius: 8px; width: 300px; text-align: center; }
+        .modal-box select { width: 100%; padding: 10px; margin: 20px 0; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -143,125 +171,140 @@ $orders = $stmt->fetchAll();
 
 <div class="container">
     <div class="reveal active">
-        <h2>Log Pesanan (Pre-Order WhatsApp)</h2>
-        <p style="margin-bottom: 20px; color: #666;">Kelola status pesanan masuk atau hapus riwayat yang tidak diperlukan.</p>
+        <h2 style="margin-bottom: 5px;">Manajemen Pesanan</h2>
+        <p style="color: #666; margin-bottom: 20px;">Pantau dan kelola status pesanan masuk.</p>
+    </div>
+
+    <div class="status-tabs reveal">
+        <a href="?status=all" class="tab-link <?= $status_filter == 'all' ? 'active' : '' ?>" data-status="all">
+            Semua <span class="counter-badge"><?= $cnt_all ?></span>
+        </a>
+        <a href="?status=pending" class="tab-link <?= $status_filter == 'pending' ? 'active' : '' ?>" data-status="pending">
+            Menunggu <span class="counter-badge"><?= $cnt_pending ?></span>
+        </a>
+        <a href="?status=processed" class="tab-link <?= $status_filter == 'processed' ? 'active' : '' ?>" data-status="processed">
+            Diproses <span class="counter-badge"><?= $cnt_processed ?></span>
+        </a>
+        <a href="?status=completed" class="tab-link <?= $status_filter == 'completed' ? 'active' : '' ?>" data-status="completed">
+            Selesai <span class="counter-badge"><?= $cnt_completed ?></span>
+        </a>
+        <a href="?status=cancelled" class="tab-link <?= $status_filter == 'cancelled' ? 'active' : '' ?>" data-status="cancelled">
+            Dibatalkan <span class="counter-badge"><?= $cnt_cancelled ?></span>
+        </a>
     </div>
 
     <?php if(isset($_GET['msg'])): ?>
-        <?php if($_GET['msg'] == 'deleted'): ?>
-            <div class="alert alert-success">Pesanan berhasil dihapus.</div>
-        <?php elseif($_GET['msg'] == 'updated'): ?>
-            <div class="alert alert-success">Status pesanan berhasil diperbarui.</div>
-        <?php endif; ?>
+        <div style="background:#d4edda; color:#155724; padding:10px; border-radius:4px; margin-bottom:20px; text-align:center;">Data berhasil diperbarui.</div>
     <?php endif; ?>
 
-    <?php foreach ($orders as $o): ?>
-        <?php 
-            $items = json_decode($o['items'], true); 
+    <div class="order-grid">
+        <?php foreach ($orders as $o): ?>
+            <?php 
+                $items = json_decode($o['items'], true);
+                $status_labels = ['pending'=>'Menunggu', 'processed'=>'Diproses', 'completed'=>'Selesai', 'cancelled'=>'Dibatalkan'];
+                $label = $status_labels[$o['status']] ?? $o['status'];
+            ?>
             
-            // ARRAY TRANSLATE: Mengubah kode Inggris ke Indonesia untuk TAMPILAN
-            $status_indo = [
-                'pending'   => 'Menunggu',
-                'processed' => 'Diproses',
-                'completed' => 'Selesai',
-                'cancelled' => 'Dibatalkan'
-            ];
-            
-            // Ambil label indo, jika tidak ada pakai default Inggris
-            $status_label = isset($status_indo[$o['status']]) ? $status_indo[$o['status']] : $o['status'];
-        ?>
-        
-        <div class="order-card reveal">
-            <div class="order-header">
-                <div>
-                    <strong style="font-size: 1.1rem; color: var(--text-dark);">
-                        #<?= $o['id'] ?> - <?= htmlspecialchars($o['customer_name']) ?>
-                    </strong>
-                    <br>
-                    <small style="color: #888;">
-                        <i class="far fa-clock"></i> <?= date('d M Y, H:i', strtotime($o['created_at'])) ?>
-                    </small>
+            <div class="order-card reveal">
+                <div class="card-header">
+                    <div>
+                        <span class="order-id">ID #<?= $o['id'] ?></span>
+                        <span class="cust-name"><?= htmlspecialchars($o['customer_name']) ?></span>
+                        <span class="order-date"><?= date('d M Y, H:i', strtotime($o['created_at'])) ?></span>
+                    </div>
+                    <span class="badge <?= $o['status'] ?>"><?= $label ?></span>
                 </div>
-                
-                <div>
-                    <span class="badge <?= strtolower($o['status']) ?>">
-                        <?= strtoupper($status_label) ?>
-                    </span>
+
+                <div class="card-items">
+                    <?php $countItem = 0; ?>
+                    <?php foreach ($items as $item): ?>
+                        <?php if($countItem < 3): // Tampilkan max 3 item agar rapi ?>
+                            <div class="item-row">
+                                <span><?= htmlspecialchars($item['name']) ?> <small class="text-muted">x<?= $item['qty'] ?></small></span>
+                            </div>
+                        <?php endif; $countItem++; ?>
+                    <?php endforeach; ?>
+                    
+                    <?php if($countItem > 3): ?>
+                        <div class="more-items">+ <?= $countItem - 3 ?> item lainnya...</div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="card-footer">
+                    <div class="total-price">Rp <?= number_format($o['total_price']) ?></div>
+                    
+                    <div class="action-group">
+                        <button class="btn-icon" title="Ubah Status" onclick="openStatusModal(<?= $o['id'] ?>, '<?= $o['status'] ?>')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        
+                        <form method="POST" onsubmit="return confirm('Hapus permanen?');" style="margin:0;">
+                            <input type="hidden" name="order_id" value="<?= $o['id'] ?>">
+                            <input type="hidden" name="action" value="delete">
+                            <button type="submit" class="btn-icon delete" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-            <ul class="item-list">
-                <?php foreach ($items as $item): ?>
-                    <li>
-                        <div style="flex: 1;">
-                            <strong><?= htmlspecialchars($item['name']) ?></strong> 
-                            <span style="color: #666;">(x<?= $item['qty'] ?>)</span>
-                            <?php if(isset($item['type']) && $item['type'] == 'custom'): ?>
-                                <br><small style="color: var(--accent);">
-                                    <em>Custom: <?= htmlspecialchars($item['details']) ?> 
-                                    (Tgl: <?= htmlspecialchars($item['date']) ?>)</em>
-                                </small>
-                            <?php endif; ?>
-                        </div>
-                        <span style="font-weight: 500;">Rp <?= number_format($item['price'] * $item['qty']) ?></span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-
-            <div class="total">
-                Total: Rp <?= number_format($o['total_price']) ?>
-            </div>
-
-            <div class="order-actions">
-                
-                <form method="POST" class="status-form">
-                    <input type="hidden" name="order_id" value="<?= $o['id'] ?>">
-                    <input type="hidden" name="action" value="update_status">
-                    
-                    <select name="status" class="status-select">
-                        <option value="pending" <?= $o['status'] == 'pending' ? 'selected' : '' ?>>Menunggu</option>
-                        <option value="processed" <?= $o['status'] == 'processed' ? 'selected' : '' ?>>Diproses</option>
-                        <option value="completed" <?= $o['status'] == 'completed' ? 'selected' : '' ?>>Selesai</option>
-                        <option value="cancelled" <?= $o['status'] == 'cancelled' ? 'selected' : '' ?>>Dibatalkan</option>
-                    </select>
-                    
-                    <button type="submit" class="btn-update" title="Simpan Status">
-                        <i class="fas fa-save"></i> Update
-                    </button>
-                </form>
-
-                <form method="POST" onsubmit="return confirm('Yakin ingin menghapus riwayat pesanan ini secara permanen?');">
-                    <input type="hidden" name="order_id" value="<?= $o['id'] ?>">
-                    <input type="hidden" name="action" value="delete">
-                    
-                    <button type="submit" class="btn-delete" title="Hapus Pesanan">
-                        <i class="fas fa-trash"></i> Hapus
-                    </button>
-                </form>
-
-            </div>
-
-        </div>
-    <?php endforeach; ?>
+        <?php endforeach; ?>
+    </div>
     
     <?php if(empty($orders)): ?>
-        <div class="reveal" style="text-align:center; padding: 50px; background: #fff; border-radius: 8px; border: 1px dashed var(--line-color);">
-            <i class="fas fa-inbox" style="font-size: 3rem; color: #ddd; margin-bottom: 15px;"></i>
-            <p style="color: #888;">Belum ada pesanan masuk.</p>
-        </div>
+        <div style="text-align:center; padding:50px; color:#888;">Belum ada pesanan pada status ini.</div>
     <?php endif; ?>
 
+    <?php if($total_pages > 1): ?>
+    <div class="pagination reveal">
+        <?php $stParam = ($status_filter !== 'all') ? '&status='.$status_filter : ''; ?>
+        <?php for($i = 1; $i <= $total_pages; $i++): ?>
+            <a href="?page=<?= $i ?><?= $stParam ?>" class="page-link <?= ($i == $page) ? 'active' : '' ?>"><?= $i ?></a>
+        <?php endfor; ?>
+    </div>
+    <?php endif; ?>
+
+</div>
+
+<div id="statusModal" class="modal-bg" style="display:none;">
+    <div class="modal-box">
+        <h3>Ubah Status Pesanan</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="update_status">
+            <input type="hidden" name="order_id" id="modalOrderId">
+            
+            <select name="status" id="modalStatusSelect">
+                <option value="pending">Menunggu</option>
+                <option value="processed">Diproses</option>
+                <option value="completed">Selesai</option>
+                <option value="cancelled">Dibatalkan</option>
+            </select>
+            
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button type="button" onclick="closeStatusModal()" style="padding:10px 20px; border:1px solid #ddd; background:#fff; cursor:pointer; border-radius:6px; font-weight:600;">Batal</button>
+                <button type="submit" style="padding:10px 20px; border:none; background:var(--accent); color:#fff; cursor:pointer; border-radius:6px; font-weight:600;">Simpan</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) entry.target.classList.add('active');
-            });
+            entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); });
         });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
+
+    function openStatusModal(id, currentStatus) {
+        document.getElementById('modalOrderId').value = id;
+        document.getElementById('modalStatusSelect').value = currentStatus;
+        document.getElementById('statusModal').style.display = 'flex';
+    }
+
+    function closeStatusModal() {
+        document.getElementById('statusModal').style.display = 'none';
+    }
 </script>
 
 </body>

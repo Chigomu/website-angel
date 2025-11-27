@@ -29,32 +29,72 @@ $total_pages = ceil($total / $limit);
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* === FIX JARAK (GAP) === */
     body { 
-        padding-top: 85px; /* Disesuaikan agar pas di bawah navbar */
+        padding-top: 85px; 
         background-color: var(--bg-cream); 
     }
-    
-    /* Override padding section khusus halaman ini agar naik ke atas */
     .section {
         padding-top: 20px !important;
         padding-bottom: 40px !important;
     }
 
-    /* Style Tabel & Pagination */
+    /* Style Tabel */
     .table-container { background: var(--bg-card); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid var(--line-color); margin-top: 20px; }
     .product-table { width: 100%; border-collapse: collapse; font-family: var(--font-body); }
     .product-table th { background-color: var(--text-dark); color: var(--bg-cream); padding: 18px; text-align: left; }
     .product-table td { padding: 16px 18px; border-bottom: 1px solid var(--line-color); vertical-align: middle; }
     .product-table tbody tr:hover { background-color: #FDFBF7; transform: scale(1.005); transition: all 0.2s ease; }
-    .btn-add { background-color: var(--accent); color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 0; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+    
+    /* Header & Tombol Tambah */
+    .btn-add { background-color: var(--accent); color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 4px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; font-weight: 600; }
     .btn-add:hover { background-color: var(--text-dark); }
-    .action-links { display: flex; gap: 10px; }
-    .btn-action { padding: 6px 10px; border-radius: 4px; border: 1px solid transparent; transition: 0.3s; color: var(--text-dark); background: #f0f0f0; }
-    .btn-action:hover { background: var(--accent); color: #fff; }
-    .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 30px; }
-    .pagination a { padding: 10px 15px; border: 1px solid var(--line-color); text-decoration: none; color: var(--text-dark); border-radius: 50%; }
-    .pagination a.active, .pagination a:hover { background: var(--accent); color: #fff; }
+    
+    /* === TOMBOL AKSI DIPERBAIKI === */
+    .action-links { display: flex; gap: 8px; }
+    
+    .btn-action { 
+        text-decoration: none; /* Hapus garis bawah link */
+        width: 35px;           /* Lebar tetap */
+        height: 35px;          /* Tinggi tetap = Persegi */
+        padding: 0;            /* Reset padding agar icon di tengah */
+        border-radius: 4px;    /* Sudut sedikit tumpul */
+        border: none; 
+        transition: 0.3s; 
+        color: #fff; 
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Detail - Biru */
+    .btn-view { background-color: #3498db; }
+    .btn-view:hover { background-color: #2980b9; transform: translateY(-2px); }
+    
+    /* Edit - Kuning/Oranye */
+    .btn-edit { background-color: #f39c12; }
+    .btn-edit:hover { background-color: #d35400; transform: translateY(-2px); }
+    
+    /* Hapus - Merah */
+    .btn-delete { background-color: #e74c3c; }
+    .btn-delete:hover { background-color: #c0392b; transform: translateY(-2px); }
+
+    /* === PAGINATION KOTAK === */
+    .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 30px; }
+    .pagination a { 
+        padding: 10px 16px; 
+        border: 1px solid var(--line-color); 
+        text-decoration: none; 
+        color: var(--text-dark); 
+        border-radius: 4px; 
+        font-weight: 600;
+        transition: all 0.3s;
+        background: #fff;
+    }
+    .pagination a.active, .pagination a:hover { 
+        background: var(--accent); 
+        color: #fff; 
+        border-color: var(--accent); 
+    }
   </style>
 </head>
 <body>
@@ -64,7 +104,8 @@ $total_pages = ceil($total / $limit);
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
-        <a href="products.php" style="color: var(--accent);">Produk</a> <a href="settings.php">Tampilan</a>
+        <a href="products.php" style="color: var(--accent);">Produk</a>
+        <a href="settings.php">Tampilan</a>
         <a href="logout.php" style="color: #C0392B;">Logout</a>
     </div>
   </nav>
@@ -72,12 +113,13 @@ $total_pages = ceil($total / $limit);
   <div class="section">
     <div class="admin-container">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h2 style="margin:0;">Daftar Produk</h2> <a href="add_product.php" class="btn-add"><i class="fas fa-plus"></i> Tambah Baru</a>
+        <h2 style="margin:0;">Daftar Produk</h2> 
+        <a href="add_product.php" class="btn-add"><i class="fas fa-plus"></i> Tambah Baru</a>
       </div>
 
-      <?php if(isset($_GET['updated'])): ?><p style="color: green; text-align: center;">Data berhasil diupdate!</p><?php endif; ?>
-      <?php if(isset($_GET['deleted'])): ?><p style="color: red; text-align: center;">Data berhasil dihapus!</p><?php endif; ?>
-      <?php if(isset($_GET['added'])): ?><p style="color: green; text-align: center;">Produk baru berhasil ditambahkan!</p><?php endif; ?>
+      <?php if(isset($_GET['updated'])): ?><div style="background:#d4edda; color:#155724; padding:10px; border-radius:5px; margin-bottom:15px; text-align:center;">Data berhasil diupdate!</div><?php endif; ?>
+      <?php if(isset($_GET['deleted'])): ?><div style="background:#f8d7da; color:#721c24; padding:10px; border-radius:5px; margin-bottom:15px; text-align:center;">Data berhasil dihapus!</div><?php endif; ?>
+      <?php if(isset($_GET['added'])): ?><div style="background:#d4edda; color:#155724; padding:10px; border-radius:5px; margin-bottom:15px; text-align:center;">Produk baru berhasil ditambahkan!</div><?php endif; ?>
 
       <div class="table-container reveal active">
         <table class="product-table">
@@ -93,9 +135,9 @@ $total_pages = ceil($total / $limit);
               <td><?= $p['category'] ?></td>
               <td>
                   <?php if($p['type'] == 'regular'): ?>
-                      <span style="color: var(--accent);">Regular</span>
+                      <span style="color: var(--accent); font-weight:500;">Regular</span>
                   <?php else: ?>
-                      <span style="color: #2980b9;">Custom</span>
+                      <span style="color: #2980b9; font-weight:500;">Custom</span>
                   <?php endif; ?>
               </td>
               <td>
@@ -106,9 +148,9 @@ $total_pages = ceil($total / $limit);
               </td>
               <td>
                 <div class="action-links">
-                  <a href="detail_product.php?id=<?= $p['id'] ?>" class="btn-action"><i class="fas fa-eye"></i></a>
-                  <a href="edit_product.php?id=<?= $p['id'] ?>" class="btn-action"><i class="fas fa-edit"></i></a>
-                  <a href="delete_product.php?id=<?= $p['id'] ?>" class="btn-action" onclick="return confirm('Hapus?')"><i class="fas fa-trash"></i></a>
+                  <a href="detail_product.php?id=<?= $p['id'] ?>" class="btn-action btn-view" title="Lihat Detail"><i class="fas fa-eye"></i></a>
+                  <a href="edit_product.php?id=<?= $p['id'] ?>" class="btn-action btn-edit" title="Edit"><i class="fas fa-edit"></i></a>
+                  <a href="delete_product.php?id=<?= $p['id'] ?>" class="btn-action btn-delete" onclick="return confirm('Hapus?')" title="Hapus"><i class="fas fa-trash"></i></a>
                 </div>
               </td>
             </tr>

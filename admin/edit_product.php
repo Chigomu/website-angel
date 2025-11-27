@@ -9,7 +9,19 @@ $stmt->execute([$id]);
 $product = $stmt->fetch();
 if (!$product) { die("Produk tidak ditemukan."); }
 
+// Ambil daftar kategori
+$cats = $pdo->query("SELECT * FROM categories ORDER BY name ASC")->fetchAll();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1. TAMBAH KATEGORI
+    if (isset($_POST['new_category_name'])) {
+        $newCat = trim($_POST['new_category_name']);
+        if ($newCat) {
+            $pdo->prepare("INSERT IGNORE INTO categories (name) VALUES (?)")->execute([$newCat]);
+            header("Location: edit_product.php?id=" . $id); exit;
+        }
+    }
+
     $name        = $_POST['name'];
     $category    = $_POST['category'];
     $type        = $_POST['type'];
@@ -18,7 +30,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price_max   = $_POST['price_max'] ?: 0;
     $ingredients = $_POST['ingredients'];
     $description = $_POST['description'];
-    $image_url   = $_POST['image_url'];
+    
+    // 2. UPDATE GAMBAR
+    $image_url = $product['image_url']; 
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] === 0) {
+        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
+        $filename = $_FILES['image_file']['name'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        
+        if (in_array($ext, $allowed)) {
+            $newName = uniqid('img_', true) . '.' . $ext;
+            $uploadDir = __DIR__ . '/../uploads/';
+            if (move_uploaded_file($_FILES['image_file']['tmp_name'], $uploadDir . $newName)) {
+                if (!empty($product['image_url']) && file_exists(__DIR__ . '/../' . $product['image_url'])) {
+                    unlink(__DIR__ . '/../' . $product['image_url']);
+                }
+                $image_url = 'uploads/' . $newName;
+            }
+        }
+    }
 
     if ($type == 'regular') { $price_min = 0; $price_max = 0; } else { $price = 0; }
 
@@ -33,58 +63,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Produk - Admin</title>
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
     <style>
         body { padding-top: 85px; background-color: var(--bg-cream); }
         .section { padding-top: 20px !important; }
-
-        /* === PERBAIKAN LEBAR FORM === */
-        .edit-container {
-            max-width: 1200px; /* Diperlebar dari 800px ke 1200px */
-            width: 95%;        /* Agar responsif di layar yang lebih kecil dari 1200px */
-            margin: 0 auto 50px; 
-            background: #fff; 
-            padding: 40px; 
-            border-radius: 12px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.05); 
-            border: 1px solid var(--line-color);
-        }
-
+        .edit-container { max-width: 1200px; width: 95%; margin: 0 auto 50px; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.05); border: 1px solid var(--line-color); }
         .edit-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--line-color); padding-bottom: 20px; }
-        .edit-header h2 { font-size: 2rem; color: var(--text-dark); }
-        .edit-header p { color: var(--text-light); }
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; } /* Gap antar kolom diperbesar sedikit */
-        .form-group { margin-bottom: 5px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
         .full-width { grid-column: span 2; }
-        
         label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
-        input[type="text"], input[type="number"], select, textarea {
-            width: 100%; padding: 12px 15px; border: 1px solid var(--line-color); border-radius: 6px;
-            font-family: var(--font-body); font-size: 1rem; transition: border-color 0.3s; background: #FAFAFA;
-        }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); background: #fff; }
-        textarea { resize: vertical; min-height: 100px; }
-        
-        .btn-group { grid-column: span 2; margin-top: 20px; display: flex; gap: 15px; }
-        .btn-cancel {
-            padding: 14px 25px; border: 1px solid var(--line-color); color: var(--text-light); text-decoration: none;
-            border-radius: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; text-align: center; flex: 1;
-        }
-        .btn-cancel:hover { background: #eee; color: var(--text-dark); }
-        .btn-save {
-            flex: 2; text-align: center; cursor: pointer; background-color: var(--accent); border: 1px solid var(--accent);
-            color: #fff; transition: all 0.3s ease; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-save:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(200, 100, 69, 0.3); }
-        
+        input, select, textarea { width: 100%; padding: 12px 15px; border: 1px solid var(--line-color); border-radius: 6px; font-family: var(--font-body); background: #FAFAFA; }
         .price-section { display: none; }
         .price-section.active { display: block; animation: fadeIn 0.3s ease; }
+        .btn-group { grid-column: span 2; margin-top: 20px; display: flex; gap: 15px; }
+        .btn-save { flex: 2; text-align: center; cursor: pointer; background-color: var(--accent); color: #fff; border: none; padding: 14px; font-weight: 600; }
+        .btn-cancel { flex: 1; text-align: center; border: 1px solid var(--line-color); padding: 14px; text-decoration: none; color: var(--text-light); font-weight: 600; }
+        
+        .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
+        .modal-box { background: #fff; padding: 30px; border-radius: 8px; width: 400px; text-align: center; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         
         @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
@@ -104,7 +103,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </nav>
 
     <div class="section reveal active">
-        
         <div style="max-width: 1200px; width: 95%; margin: 0 auto 20px;">
             <a href="products.php" style="color: var(--text-light); text-decoration: none;">
                 <i class="fas fa-arrow-left"></i> Kembali ke Menu Produk
@@ -117,18 +115,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p>Perbarui informasi produk: <strong><?= htmlspecialchars($product['name']) ?></strong></p>
             </div>
 
-            <form method="POST" class="form-grid">
-                <div class="form-group full-width">
-                    <label>Nama Produk</label>
-                    <input type="text" name="name" value="<?= htmlspecialchars($product['name']); ?>" required placeholder="Contoh: Nastar Premium">
-                </div>
+            <form method="POST" enctype="multipart/form-data" class="form-grid">
+                
                 <div class="form-group">
-                    <label>Kategori</label>
-                    <input type="text" name="category" value="<?= htmlspecialchars($product['category']); ?>" list="catList">
-                    <datalist id="catList">
-                        <option value="Kue Kering"><option value="Kue & Bolu"><option value="Ulang Tahun Anak"><option value="Pernikahan">
-                    </datalist>
+                    <label>Nama Produk</label>
+                    <input type="text" name="name" value="<?= htmlspecialchars($product['name']); ?>" required>
                 </div>
+
+                <div class="form-group">
+                    <label>Ganti Gambar (Kosongkan jika tidak ubah)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <?php if (!empty($product['image_url'])): ?>
+                            <img src="../<?= htmlspecialchars($product['image_url']) ?>" style="height:45px; border-radius:4px; border:1px solid #ddd;">
+                        <?php endif; ?>
+                        <input type="file" name="image_file" accept="image/*" style="padding:10px; background:#fff;">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Kategori <a href="#" onclick="openCatModal()" style="font-size:0.8rem; color:var(--accent); float:right;">+ Tambah Baru</a></label>
+                    <select name="category" required>
+                        <?php foreach ($cats as $c): ?>
+                            <option value="<?= htmlspecialchars($c['name']) ?>" <?= $product['category'] == $c['name'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label>Jenis Produk</label>
                     <select name="type" id="typeSelect" onchange="togglePriceInputs()">
@@ -136,36 +150,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="custom"  <?= $product['type']=='custom'?'selected':''; ?>>Custom (Range Harga)</option>
                     </select>
                 </div>
+
                 <div id="priceRegular" class="form-group full-width price-section">
                     <label>Harga Satuan (Rp)</label>
-                    <input type="number" name="price" value="<?= $product['price']; ?>" placeholder="0">
+                    <input type="number" name="price" value="<?= $product['price']; ?>">
                 </div>
                 <div id="priceCustom1" class="form-group price-section">
                     <label>Harga Minimum (Rp)</label>
-                    <input type="number" name="price_min" value="<?= $product['price_min']; ?>" placeholder="0">
+                    <input type="number" name="price_min" value="<?= $product['price_min']; ?>">
                 </div>
                 <div id="priceCustom2" class="form-group price-section">
                     <label>Harga Maksimum (Rp)</label>
-                    <input type="number" name="price_max" value="<?= $product['price_max']; ?>" placeholder="0">
+                    <input type="number" name="price_max" value="<?= $product['price_max']; ?>">
                 </div>
-                <div class="form-group full-width">
-                    <label>URL Gambar</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" name="image_url" id="imgInput" value="<?= htmlspecialchars($product['image_url']); ?>" placeholder="https://...">
-                        <button type="button" onclick="previewImage()" style="padding: 0 15px; border: 1px solid var(--line-color); background: #fff; cursor: pointer;"><i class="fas fa-eye"></i></button>
-                    </div>
-                </div>
-                <div class="form-group full-width">
+
+                <div class="form-group">
                     <label>Bahan Utama</label>
-                    <textarea name="ingredients" rows="3" placeholder="Tepung, Telur, Mentega..."><?= htmlspecialchars($product['ingredients']); ?></textarea>
+                    <textarea name="ingredients" rows="6"><?= htmlspecialchars($product['ingredients']); ?></textarea>
                 </div>
-                <div class="form-group full-width">
+                <div class="form-group">
                     <label>Deskripsi Lengkap</label>
-                    <textarea name="description" rows="5"><?= htmlspecialchars($product['description']); ?></textarea>
+                    <textarea name="description" rows="6"><?= htmlspecialchars($product['description']); ?></textarea>
                 </div>
+
                 <div class="btn-group">
                     <a href="products.php" class="btn-cancel">Batal</a>
-                    <button type="submit" class="btn-primary btn-save">Simpan Perubahan</button>
+                    <button type="submit" class="btn-save">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="catModal" class="modal-bg">
+        <div class="modal-box">
+            <h3>Tambah Kategori Baru</h3>
+            <form method="POST">
+                <input type="text" name="new_category_name" placeholder="Nama Kategori" required>
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button type="button" onclick="closeCatModal()" style="flex:1; padding:10px; border:1px solid #ddd; background:#fff; cursor:pointer;">Batal</button>
+                    <button type="submit" style="flex:1; padding:10px; border:none; background:var(--accent); color:#fff; cursor:pointer;">Simpan</button>
                 </div>
             </form>
         </div>
@@ -178,19 +201,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
         function togglePriceInputs() {
             const type = document.getElementById('typeSelect').value;
-            const regularGroup = document.getElementById('priceRegular');
-            const customGroup1 = document.getElementById('priceCustom1');
-            const customGroup2 = document.getElementById('priceCustom2');
+            const reg = document.getElementById('priceRegular');
+            const cust1 = document.getElementById('priceCustom1');
+            const cust2 = document.getElementById('priceCustom2');
             if (type === 'regular') {
-                regularGroup.classList.add('active'); customGroup1.classList.remove('active'); customGroup2.classList.remove('active');
+                reg.classList.add('active'); cust1.classList.remove('active'); cust2.classList.remove('active');
             } else {
-                regularGroup.classList.remove('active'); customGroup1.classList.add('active'); customGroup2.classList.add('active');
+                reg.classList.remove('active'); cust1.classList.add('active'); cust2.classList.add('active');
             }
         }
-        function previewImage() {
-            const url = document.getElementById('imgInput').value;
-            if(url) { window.open(url, '_blank'); } else { alert("URL gambar kosong"); }
-        }
+        function openCatModal() { document.getElementById('catModal').style.display = 'flex'; }
+        function closeCatModal() { document.getElementById('catModal').style.display = 'none'; }
     </script>
 </body>
 </html>
