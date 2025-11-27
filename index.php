@@ -46,8 +46,7 @@ try {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
-    /* === ACTIVE NAV LINK STYLE === */
-    .nav-links a.active { color: var(--accent) !important; font-weight: 700; }
+    /* ... (CSS SAMA SEPERTI SEBELUMNYA) ... */
     .hero { min-height: auto !important; height: auto !important; padding-top: 160px !important; padding-bottom: 80px !important; display: flex; align-items: center; justify-content: center; }
     .marquee-container { padding: 15px 0 !important; background-color: var(--text-dark) !important; color: var(--bg-cream) !important; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); position: relative; z-index: 10; margin-bottom: 0 !important; }
     .marquee-content span { padding: 0 40px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 0.95rem; }
@@ -83,21 +82,30 @@ try {
     .marquee-content { display: inline-block; white-space: nowrap; animation: scroll-seamless 40s linear infinite; }
     @keyframes scroll-seamless { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     
+    /* KUE CUSTOM */
     .custom-banner { padding: 40px 20px !important; margin-top: 20px !important; margin-bottom: 0 !important; }
     .custom-banner .product-list { gap: 20px !important; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important; }
     .custom-product { position: relative; overflow: hidden; cursor: pointer; }
-    .custom-product .img-wrapper { height: 200px !important; position: relative; } 
+    .custom-product .img-wrapper { height: 180px !important; position: relative; } 
     .custom-product .img-wrapper img { transition: transform 0.5s ease; width: 100%; height: 100%; object-fit: cover; }
     .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 24, 16, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
     .hover-btn { background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; transform: translateY(20px); transition: transform 0.3s ease; }
     .custom-product:hover .hover-overlay { opacity: 1; }
     .custom-product:hover .hover-btn { transform: translateY(0); }
     .custom-product:hover .img-wrapper img { transform: scale(1.1); }
-    .custom-product .info-wrapper { padding: 20px !important; text-align: left !important; background: #fff; }
-    .custom-product .info-wrapper h3 { margin-bottom: 5px !important; font-size: 1.2rem !important; }
-    .custom-product .info-wrapper p { margin-bottom: 10px !important; min-height: 0 !important; line-height: 1.4; font-size: 0.9rem; color: #888; }
-    .custom-product .info-wrapper .price { margin-top: 0 !important; display: block; font-weight: 700; font-size: 1rem; color: var(--accent); }
-    
+    .custom-product .info-wrapper { padding: 15px !important; text-align: left !important; background: #fff; }
+    .custom-product .info-wrapper h3 { font-size: 1.1rem !important; margin-bottom: 5px !important; }
+    .custom-product .info-wrapper p { font-size: 0.8rem !important; color: #888; margin-bottom: 5px !important; min-height: 0 !important; line-height: 1.3; }
+    .custom-product .info-wrapper .price { margin-top: 0 !important; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+    .cta-section { background: var(--bg-cream); text-align: center; padding: 50px 20px !important; margin-top: 30px !important; border-top: 1px solid var(--line-color); margin-bottom: 0 !important; }
+    .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
+
+    /* LOKASI SECTION (UPDATED MARGIN TOP) */
+    #lokasi {
+        margin-top: 40px !important; /* Menambah jarak antara Custom dan Lokasi */
+        padding-top: 0 !important;
+    }
+
     footer { padding: 40px 20px 20px !important; margin-top: 0 !important; }
     @media (max-width: 768px) { 
         .hero { padding-top: 120px !important; }
@@ -114,11 +122,11 @@ try {
   <nav class="navbar" id="navbar">
     <div class="logo">Ibu Angel</div>
     <ul class="nav-links">
-      <li><a href="#home" class="nav-link">Beranda</a></li>
-      <li><a href="#about" class="nav-link">Tentang</a></li>
-      <li><a href="#produk" class="nav-link">Menu</a></li>
-      <li><a href="#custom" class="nav-link">Custom</a></li>
-      <li><a href="#lokasi" class="nav-link">Kontak</a></li>
+      <li><a href="#home">Beranda</a></li>
+      <li><a href="#about">Tentang</a></li>
+      <li><a href="#produk">Menu</a></li>
+      <li><a href="#custom">Custom</a></li>
+      <li><a href="#lokasi">Kontak</a></li>
       <li><a href="cart.php" style="font-size: 1.2rem;"><i class="fas fa-shopping-cart"></i> <span id="cart-badge" style="font-size: 0.8rem; vertical-align: top;"></span></a></li> 
     </ul>
   </nav>
@@ -270,7 +278,7 @@ try {
     </div>
   </section>
 
-  <section id="lokasi" class="section reveal section-scroll" style="padding-top: 0 !important;">
+  <section id="lokasi" class="section reveal section-scroll">
     <div class="section-header">
         <h2>Kunjungi Kami</h2>
         <p>Datang dan cium aroma kue segar langsung dari oven kami.</p>
@@ -340,24 +348,6 @@ try {
   </a>
 
   <script>
-    // SCROLL SPY
-    const sections = document.querySelectorAll(".section-scroll");
-    const navLinks = document.querySelectorAll(".nav-link");
-    window.addEventListener("scroll", () => {
-        let current = "";
-        sections.forEach((section) => {
-            const sectionTop = section.offsetTop;
-            if (scrollY >= (sectionTop - 200)) current = section.getAttribute("id");
-        });
-        navLinks.forEach((li) => {
-            li.classList.remove("active");
-            if (li.getAttribute("href").includes(current)) li.classList.add("active");
-        });
-        const navbar = document.getElementById('navbar');
-        if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
-    });
-
-    // CART LOGIC
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
     function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
     function updateBadge() {
@@ -367,11 +357,13 @@ try {
     }
     updateBadge();
 
-    // SCROLL REVEAL
     const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('active'); }); }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    window.addEventListener('scroll', () => {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
+    });
 
-    // QUANTITY HELPER
     window.changeCardQty = function(id, change) {
         const input = document.getElementById(id);
         let newVal = parseInt(input.value) + change;
@@ -379,7 +371,6 @@ try {
         input.value = newVal;
     };
 
-    // ADD TO CART DIRECT
     window.addToCartWithQty = function(id, name, price, type, category) {
         const qtyInput = document.getElementById('qty-' + id);
         const qty = parseInt(qtyInput.value) || 1;
@@ -390,7 +381,6 @@ try {
         qtyInput.value = 1;
     };
 
-    // CUSTOM MODAL
     const customModal = document.getElementById("customModal");
     const closeCustom = document.getElementById("closeCustom");
     const addCustomBtn = document.getElementById("addCustomToCart");
@@ -416,7 +406,6 @@ try {
     closeCustom.onclick = () => customModal.style.display = "none";
     window.onclick = (e) => { if(e.target == customModal) customModal.style.display = "none"; };
 
-    // === UPDATE LOGIKA: SIMPAN KE KERANJANG ===
     addCustomBtn.addEventListener("click", () => {
       if (!cDetails.value || !cDate.value) { alert("Mohon lengkapi detail dan tanggal!"); return; }
       const customItem = { 
