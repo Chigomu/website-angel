@@ -99,16 +99,16 @@ $total_pages = ceil($total / $limit);
 </head>
 <body>
 
-<nav class="navbar">
+  <nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
         <a href="products.php" style="color: var(--accent);">Produk</a>
-        <a href="settings.php">Pengaturan</a> 
+        <a href="settings.php">Pengaturan</a>
         <a href="logout.php" style="color: #C0392B;">Keluar</a>
-      </div>
-</nav>
+    </div>
+  </nav>
 
   <div class="section">
     <div class="admin-container">
@@ -125,12 +125,29 @@ $total_pages = ceil($total / $limit);
         <table class="product-table">
           <thead>
             <tr>
-              <th>Nama</th><th>Kategori</th><th>Tipe</th><th>Harga</th><th>Aksi</th>
+              <th>Gambar</th>
+              <th>Nama</th>
+              <th>Kategori</th>
+              <th>Tipe</th>
+              <th>Harga</th>
+              <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
             <?php foreach ($products as $p): ?>
             <tr>
+              <td>
+                <?php 
+                    $imgSrc = $p['image_url'];
+                    // Cek jika bukan URL eksternal, tambahkan ../
+                    if (!empty($imgSrc) && !preg_match("~^(?:f|ht)tps?://~i", $imgSrc)) {
+                        $imgSrc = "../" . $imgSrc; 
+                    }
+                    if(empty($imgSrc)) $imgSrc = "https://placehold.co/50x50?text=No+Img";
+                ?>
+                <img src="<?= htmlspecialchars($imgSrc) ?>" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;">
+              </td>
+
               <td><strong><?= htmlspecialchars($p['name']) ?></strong></td>
               <td><?= $p['category'] ?></td>
               <td>
