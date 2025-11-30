@@ -392,7 +392,7 @@ try {
     <p>Punya desain impian? Kami siap mewujudkannya.</p>
     
     <div class="product-list" style="max-width: 1000px; margin: 20px auto 0; text-align: left;">
-      <div class="product-card custom-product" data-category="Ulang Tahun Anak" data-name="Kustom Kue" data-price-min="150000" data-price-max="300000">
+      <div class="product-card custom-product" data-category="Ulang Tahun Anak" data-name="Kue Ulang Tahun" data-price-min="150000" data-price-max="300000">
         <div class="img-wrapper">
             <img src="https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=500&q=80" alt="Kids Cake">
             <div class="hover-overlay"><span class="hover-btn">Pesan Sekarang</span></div>
@@ -403,7 +403,7 @@ try {
           <span class="price">Mulai Rp 150k</span>
         </div>
       </div>
-      <div class="product-card custom-product" data-category="Pernikahan" data-name="Kustom Kue" data-price-min="500000" data-price-max="2000000">
+      <div class="product-card custom-product" data-category="Pernikahan" data-name="Kue Pernikahan" data-price-min="500000" data-price-max="2000000">
         <div class="img-wrapper">
             <img src="https://cdn-image.hipwee.com/wp-content/uploads/2021/10/hipwee-Gold-Wedding-Theme-_-Wedding-Ideas-By-Colour-_-CHWV-500x750.jpg" alt="Wedding">
             <div class="hover-overlay"><span class="hover-btn">Pesan Sekarang</span></div>
@@ -414,7 +414,7 @@ try {
           <span class="price">Mulai Rp 500k</span>
         </div>
       </div>
-      <div class="product-card custom-product" data-category="Lamaran" data-name="Kustom Kue" data-price-min="350000" data-price-max="800000">
+      <div class="product-card custom-product" data-category="Lamaran" data-name="Kue Lamaran" data-price-min="350000" data-price-max="800000">
         <div class="img-wrapper">
             <img src="https://down-id.img.susercontent.com/file/id-11134207-7rask-m19g6tfbxxr2ad" alt="Lamaran">
             <div class="hover-overlay"><span class="hover-btn">Pesan Sekarang</span></div>
