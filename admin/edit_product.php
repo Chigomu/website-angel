@@ -91,16 +91,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
 
-    <nav class="navbar">
-        <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
-        <div class="nav-links">
-            <a href="dashboard.php">Dashboard</a>
-            <a href="orders.php">Pesanan</a>
-            <a href="products.php" style="color: var(--accent);">Produk</a>
-            <a href="settings.php">Tampilan</a>
-            <a href="logout.php" style="color: #C0392B;">Logout</a>
-        </div>
-    </nav>
+<nav class="navbar">
+    <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
+    <div class="nav-links">
+        <a href="dashboard.php">Dashboard</a>
+        <a href="orders.php">Pesanan</a>
+        <a href="products.php" style="color: var(--accent);">Produk</a>
+        <a href="settings.php">Pengaturan</a> <a href="logout.php" style="color: #C0392B;">Keluar</a> </div>
+</nav>
 
     <div class="section reveal active">
         <div style="max-width: 1200px; width: 95%; margin: 0 auto 20px;">

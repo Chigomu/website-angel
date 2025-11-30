@@ -164,8 +164,8 @@ $cnt_all = $pdo->query("SELECT COUNT(*) FROM orders")->fetchColumn();
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php" style="color: var(--accent);">Pesanan</a>
         <a href="products.php">Produk</a>  
-        <a href="settings.php">Tampilan</a>
-        <a href="logout.php" style="color: #C0392B;">Logout</a>
+        <a href="settings.php">Pengaturan</a> 
+        <a href="logout.php" style="color: #C0392B;">Keluar</a> 
     </div>
 </nav>
 

@@ -97,11 +97,11 @@ try {
 <nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
-      <a href="dashboard.php" style="color: var(--accent);">Dashboard</a>
-      <a href="orders.php">Pesanan</a>
-      <a href="products.php">Produk</a>
-      <a href="settings.php">Tampilan</a>
-      <a href="logout.php" style="color: #C0392B;">Logout</a>
+        <a href="dashboard.php" style="color: var(--accent);">Dashboard</a>
+        <a href="orders.php">Pesanan</a>
+        <a href="products.php">Produk</a>
+        <a href="settings.php">Pengaturan</a> 
+        <a href="logout.php" style="color: #C0392B;">Keluar</a> 
     </div>
 </nav>
 

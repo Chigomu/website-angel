@@ -99,16 +99,16 @@ $total_pages = ceil($total / $limit);
 </head>
 <body>
 
-  <nav class="navbar">
+<nav class="navbar">
     <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
         <a href="products.php" style="color: var(--accent);">Produk</a>
-        <a href="settings.php">Tampilan</a>
-        <a href="logout.php" style="color: #C0392B;">Logout</a>
-    </div>
-  </nav>
+        <a href="settings.php">Pengaturan</a> 
+        <a href="logout.php" style="color: #C0392B;">Keluar</a>
+      </div>
+</nav>
 
   <div class="section">
     <div class="admin-container">
