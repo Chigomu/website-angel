@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <nav class="navbar">
-    <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
+    <a href="dashboard.php" class="logo">Ibuké Enjel Admin</a>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
         <a href="orders.php">Pesanan</a>
