@@ -20,7 +20,6 @@ if (!$product) { die("Produk tidak ditemukan."); }
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
-        /* === FIX GAP === */
         body { padding-top: 85px; background-color: var(--bg-cream); }
         .section { padding-top: 20px !important; }
 
@@ -28,7 +27,7 @@ if (!$product) { die("Produk tidak ditemukan."); }
             background: #fff; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.05);
             border: 1px solid var(--line-color); overflow: hidden; 
             display: grid; 
-            grid-template-columns: 450px 1fr; /* Kolom Kiri (Gbr) 450px, Kanan Sisa */
+            grid-template-columns: 400px 1fr; /* Kolom Kiri (Gbr) 400px, Kanan Sisa */
             min-height: 500px;
         }
         
@@ -52,7 +51,14 @@ if (!$product) { die("Produk tidak ditemukan."); }
         
         .product-price { font-size: 1.8rem; color: var(--accent); font-weight: 600; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--line-color); }
         
-        .info-section { margin-bottom: 25px; }
+        /* GRID INFO (DESKRIPSI & BAHAN) */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 Kolom Sejajar */
+            gap: 30px;
+            margin-bottom: 25px;
+        }
+
         .info-section h4 { font-family: var(--font-body); font-size: 0.9rem; text-transform: uppercase; color: var(--text-light); margin-bottom: 8px; letter-spacing: 1px; font-weight: 700; }
         .info-section p { color: var(--text-dark); font-size: 1rem; line-height: 1.7; }
         
@@ -81,19 +87,26 @@ if (!$product) { die("Produk tidak ditemukan."); }
         .tech-item span { display: block; font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
         .tech-item strong { color: #555; }
 
-        @media (max-width: 900px) { .detail-card { grid-template-columns: 1fr; } .product-image-col { padding: 20px; } .product-image-col img { max-height: 300px; } }
+        @media (max-width: 900px) { 
+            .detail-card { grid-template-columns: 1fr; } 
+            .product-image-col { padding: 20px; } 
+            .product-image-col img { max-height: 300px; } 
+            .info-grid { grid-template-columns: 1fr; } /* Stack di mobile */
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
-    <div class="nav-links">
-        <a href="dashboard.php">Dashboard</a>
-        <a href="orders.php">Pesanan</a>
-        <a href="products.php" style="color: var(--accent);">Produk</a>
-        <a href="settings.php">Pengaturan</a> <a href="logout.php" style="color: #C0392B;">Keluar</a> </div>
-</nav>
+    <nav class="navbar">
+        <a href="dashboard.php" class="logo"> Ibuké Enjel Admin</a>
+        <div class="nav-links">
+            <a href="dashboard.php">Dashboard</a>
+            <a href="orders.php">Pesanan</a>
+            <a href="products.php" style="color: var(--accent);">Produk</a>
+            <a href="settings.php">Pengaturan</a>
+            <a href="logout.php" style="color: #C0392B;">Keluar</a>
+        </div>
+    </nav>
 
     <div class="section">
         
@@ -106,8 +119,14 @@ if (!$product) { die("Produk tidak ditemukan."); }
         <div class="detail-card reveal active">
             
             <div class="product-image-col">
-                <?php if (!empty($product['image_url'])): ?>
-                    <img src="../<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                <?php 
+                    $imgSrc = $product['image_url'];
+                    if (!empty($imgSrc) && !preg_match("~^(?:f|ht)tps?://~i", $imgSrc)) {
+                        $imgSrc = "../" . $imgSrc;
+                    }
+                ?>
+                <?php if (!empty($imgSrc)): ?>
+                    <img src="<?= htmlspecialchars($imgSrc) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
                 <?php else: ?>
                     <div class="no-image"><i class="fas fa-image" style="font-size: 3rem; margin-bottom: 10px; display:block;"></i>Tidak ada gambar</div>
                 <?php endif; ?>
@@ -129,17 +148,19 @@ if (!$product) { die("Produk tidak ditemukan."); }
                     <?php endif; ?>
                 </div>
 
-                <div class="info-section">
-                    <h4>Deskripsi Produk</h4>
-                    <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
-                </div>
+                <div class="info-grid">
+                    <div class="info-section">
+                        <h4>Deskripsi Produk</h4>
+                        <p><?= nl2br(htmlspecialchars($product['description'])) ?></p>
+                    </div>
 
-                <?php if(!empty($product['ingredients'])): ?>
-                <div class="info-section">
-                    <h4>Bahan Utama</h4>
-                    <p><?= nl2br(htmlspecialchars($product['ingredients'])) ?></p>
+                    <?php if(!empty($product['ingredients'])): ?>
+                    <div class="info-section">
+                        <h4>Bahan Utama</h4>
+                        <p><?= nl2br(htmlspecialchars($product['ingredients'])) ?></p>
+                    </div>
+                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
 
                 <div class="action-bar">
                     <a href="edit_product.php?id=<?= $product['id'] ?>" class="btn-primary" style="border-radius:4px;">

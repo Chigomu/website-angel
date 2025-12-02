@@ -30,7 +30,7 @@ try {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard Admin | Ibu Angel</title>
+    <title>Dashboard Admin | Ibuké Enjel</title>
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -95,7 +95,7 @@ try {
 <body>
 
 <nav class="navbar">
-    <a href="dashboard.php" class="logo">Ibu Angel Admin</a>
+    <a href="dashboard.php" class="logo">Ibuké Enjel Admin</a>
     <div class="nav-links">
         <a href="dashboard.php" style="color: var(--accent);">Dashboard</a>
         <a href="orders.php">Pesanan</a>
@@ -106,7 +106,7 @@ try {
 </nav>
 
 <div class="section reveal active">
-    <h2 style="text-align:center; margin-bottom: 10px; margin-top: 0;">Selamat Datang, Ibu Angel!</h2>
+    <h2 style="text-align:center; margin-bottom: 10px; margin-top: 0;">Selamat Datang, Admin!</h2>
     <p style="text-align:center; color: var(--text-light); margin-bottom: 50px;">Berikut adalah ringkasan aktivitas toko saat ini.</p>
 
     <div class="section-title">Ringkasan Pesanan</div>

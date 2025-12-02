@@ -10,9 +10,13 @@ $offset = ($page - 1) * $limit;
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 
 try {
+    // === LOGIKA DROPDOWN DINAMIS ===
+    // Hanya ambil kategori yang benar-benar memiliki produk 'regular'
+    // Ini otomatis menyembunyikan kategori kosong atau kategori khusus custom
     $stmt_cat = $pdo->query("SELECT DISTINCT category FROM products WHERE type = 'regular' ORDER BY category ASC");
     $categories = $stmt_cat->fetchAll(PDO::FETCH_COLUMN);
 
+    // Hitung Total Produk (Sesuai Filter)
     $sql_count = "SELECT COUNT(*) FROM products WHERE type = 'regular'";
     if ($category_filter && $category_filter !== 'all') $sql_count .= " AND category = :cat";
     $stmt_count = $pdo->prepare($sql_count);
@@ -21,6 +25,7 @@ try {
     $total_items = $stmt_count->fetchColumn();
     $total_pages = ceil($total_items / $limit);
 
+    // Ambil Data Produk
     $sql_products = "SELECT * FROM products WHERE type = 'regular'";
     if ($category_filter && $category_filter !== 'all') $sql_products .= " AND category = :cat";
     $sql_products .= " ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
@@ -39,13 +44,30 @@ try {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ibu Angel | Artisan Cookies & Cakes</title>
+  <title>Ibuké Enjel | Artisan Cookies & Cakes</title>
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <?php require_once 'app/dynamic_style.php'; ?>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
+    /* === STYLE SCROLL SPY (NAVBAR AKTIF) === */
+    .nav-links a.active {
+        color: var(--accent) !important;
+        font-weight: 700;
+    }
+    
+    /* === FIX & TUNING TAMPILAN === */
+    .hero { 
+        min-height: auto !important; height: auto !important; 
+        padding-top: 160px !important; padding-bottom: 80px !important;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .marquee-container { 
+        padding: 15px 0 !important; background-color: var(--text-dark) !important; 
+        color: var(--bg-cream) !important; border-top: 2px solid var(--accent); 
+        border-bottom: 2px solid var(--accent); position: relative; z-index: 10; margin-bottom: 0 !important;
+    }
     /* === PERBAIKAN UKURAN KARTU & POSISI TOMBOL === */
     
     .product-list { 
@@ -201,6 +223,7 @@ try {
     .hero { min-height: auto !important; height: auto !important; padding-top: 160px !important; padding-bottom: 80px !important; display: flex; align-items: center; justify-content: center; }
     .marquee-container { padding: 15px 0 !important; background-color: var(--text-dark) !important; color: var(--bg-cream) !important; border-top: 2px solid var(--accent); border-bottom: 2px solid var(--accent); position: relative; z-index: 10; margin-bottom: 0 !important; }
     .marquee-content span { padding: 0 40px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-size: 0.95rem; }
+
     .section { padding: 30px 20px !important; }
     .section-header { margin-bottom: 20px !important; }
     .section-header h2 { margin-bottom: 5px !important; font-size: 2.5rem; }
@@ -208,18 +231,68 @@ try {
     .feature-list { list-style: none; padding: 0; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .feature-list li { display: flex; align-items: center; gap: 10px; color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
     .feature-list li i { color: var(--accent); }
-    .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
-    .filter-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 20px; text-decoration: none; font-weight: 600; transition: 0.3s; font-size: 0.9rem; display: inline-block; }
-    .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #fff; }
     
+    /* === FILTER DROPDOWN STYLE === */
+    .filter-container { 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        gap: 15px; 
+        margin-bottom: 30px; 
+        margin-top: 30px; 
+    }
+    .filter-label { font-weight: 600; color: var(--text-light); font-size: 1rem; }
+    
+    .category-select {
+        padding: 10px 20px;
+        border: 2px solid var(--accent);
+        border-radius: 30px;
+        background: transparent;
+        color: var(--text-dark);
+        font-family: var(--font-body);
+        font-size: 1rem;
+        cursor: pointer;
+        outline: none;
+        min-width: 200px;
+        text-align: left;
+        font-weight: 600;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D97757%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px top 50%;
+        background-size: 12px auto;
+        padding-right: 40px;
+    }
+    .category-select:hover { background-color: rgba(217, 119, 87, 0.05); }
+    
+    /* PRODUK REGULER */
+    .product-list { gap: 15px !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+    .product-card .img-wrapper { height: 160px !important; }
+    .product-card .info-wrapper { padding: 12px !important; text-align: left !important; }
+    .product-card h3 { font-size: 1.1rem !important; margin-bottom: 3px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .product-card p { font-size: 0.8rem !important; color: #888; margin-bottom: 8px !important; min-height: 0 !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
+    .card-footer { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--accent); font-size: 1rem; }
+    .action-row { display: flex; gap: 5px; align-items: center; }
+    .qty-selector { display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+    .qty-selector button { background: #f9f9f9; border: none; width: 28px; height: 30px; cursor: pointer; color: var(--text-dark); font-weight: bold; }
+    .qty-selector input { width: 35px; height: 30px; text-align: center; border: none; border-left: 1px solid #ddd; border-right: 1px solid #ddd; font-size: 0.9rem; -moz-appearance: textfield; }
+    .btn-add-cart { flex: 1; background: var(--accent); color: white; border: none; height: 30px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s; }
+    .btn-add-cart:hover { background: var(--text-dark); }
     .pagination { display: flex; justify-content: center; gap: 5px; margin-top: 40px; }
     .page-link { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border: 1px solid var(--line-color); border-radius: 4px; text-decoration: none; color: var(--text-dark); font-weight: 600; transition: 0.3s; }
     .page-link:hover, .page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
     .nav-links, .nav-links li { list-style: none !important; padding: 0; margin: 0; }
     .marquee-content { display: inline-block; white-space: nowrap; animation: scroll-seamless 40s linear infinite; }
     @keyframes scroll-seamless { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    
+    /* KUE CUSTOM */
     .custom-banner { padding: 40px 20px !important; margin-top: 20px !important; margin-bottom: 0 !important; }
-    .custom-banner .product-list { gap: 20px !important; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important; }
+    .custom-banner .product-list { 
+        gap: 20px !important; 
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important; 
+        max-width: 1000px; margin: 20px auto 0; text-align: left;
+    }
     .custom-product { position: relative; overflow: hidden; cursor: pointer; }
     .custom-product .img-wrapper { height: 180px !important; position: relative; } 
     .custom-product .img-wrapper img { transition: transform 0.5s ease; width: 100%; height: 100%; object-fit: cover; }
@@ -228,7 +301,7 @@ try {
     .custom-product:hover .hover-overlay { opacity: 1; }
     .custom-product:hover .hover-btn { transform: translateY(0); }
     .custom-product:hover .img-wrapper img { transform: scale(1.1); }
-    .custom-product .info-wrapper { padding: 15px !important; text-align: left !important; background: #fff; }
+    .custom-product .info-wrapper { padding: 20px !important; text-align: left !important; background: #fff; }
     .custom-product .info-wrapper h3 { margin-bottom: 5px !important; font-size: 1.2rem !important; }
     .custom-product .info-wrapper p { margin-bottom: 10px !important; min-height: 0 !important; line-height: 1.4; font-size: 0.9rem; color: #888; }
     .custom-product .info-wrapper .price { margin-top: 0 !important; display: block; font-weight: 700; font-size: 1rem; color: var(--accent); }
@@ -236,10 +309,14 @@ try {
     .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
     #lokasi { margin-top: 40px !important; padding-top: 0 !important; }
     footer { padding: 40px 20px 20px !important; margin-top: 0 !important; }
+    
+    /* RESPONSIVE */
     @media (max-width: 768px) { 
         .hero { padding-top: 120px !important; }
         .product-list { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
         .feature-list { grid-template-columns: 1fr; }
+        .filter-container { flex-direction: column; gap: 10px; }
+        .category-select { width: 100%; }
     }
   </style>
 </head>
@@ -247,7 +324,7 @@ try {
 
 <header>
   <nav class="navbar" id="navbar">
-    <div class="logo">Ibu Angel</div>
+    <div class="logo">Ibuké Enjel</div>
     <ul class="nav-links">
       <li><a href="#home" class="nav-link">Beranda</a></li>
       <li><a href="#about" class="nav-link">Tentang</a></li>
@@ -305,12 +382,15 @@ try {
     </div>
     
     <div class="filter-container reveal">
-        <a href="?category=all#produk" class="filter-btn <?= (!$category_filter || $category_filter == 'all') ? 'active' : '' ?>">Semua</a>
-        <?php foreach($categories as $cat): ?>
-            <a href="?category=<?= urlencode($cat) ?>#produk" class="filter-btn <?= ($category_filter == $cat) ? 'active' : '' ?>">
-                <?= htmlspecialchars($cat) ?>
-            </a>
-        <?php endforeach; ?>
+        <span class="filter-label">Filter sesuai kategori:</span>
+        <select class="category-select" onchange="location = this.value;">
+            <option value="?category=all#produk" <?= (!$category_filter || $category_filter == 'all') ? 'selected' : '' ?>>Semua Kategori</option>
+            <?php foreach($categories as $cat): ?>
+                <option value="?category=<?= urlencode($cat) ?>#produk" <?= ($category_filter == $cat) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($cat) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="product-list">
@@ -439,7 +519,7 @@ try {
     <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: stretch;">
         
         <div style="flex: 1; min-width: 300px; background: #fff; padding: 25px; border-radius: 12px; border: 1px solid var(--line-color); box-shadow: 0 5px 20px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center;">
-            <h3 style="margin-bottom: 15px; color: var(--accent); font-family: var(--font-heading); font-size: 1.6rem;">Ibu Angel</h3>
+            <h3 style="margin-bottom: 15px; color: var(--accent); font-family: var(--font-heading); font-size: 1.6rem;">Ibuké Enjel</h3>
             <div style="margin-bottom: 15px;">
                 <strong style="display:block; color:var(--text-dark); margin-bottom: 5px;">Alamat:</strong>
                 <p style="color: var(--text-light); line-height: 1.6;">
@@ -467,14 +547,14 @@ try {
   </section>
 
   <footer>
-    <span class="footer-logo">Ibu Angel</span>
-    <p>Dibuat dengan kualitas dan bahan terbaik.</p>
+    <span class="footer-logo"><?= set('footer_title', 'Ibu Angel') ?></span>
+    <p><?= set('footer_desc', 'Dibuat dengan kualitas dan bahan terbaik.') ?></p>
     <div class="socials" style="margin-top: 15px;">
-      <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
-      <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
-      <a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      <a href="<?= set('social_instagram', '#') ?>" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="<?= set('social_facebook', '#') ?>" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+      <a href="<?= set('social_whatsapp', '#') ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
     </div>
-    <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">© 2025 Ibu Angel Bakery.</p>
+    <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;"><?= set('footer_copy', '© 2025 Ibu Angel Bakery.') ?></p>
   </footer>
 
   <div id="customModal" class="modal">
@@ -501,6 +581,7 @@ try {
   </a>
 
   <script>
+    // Logic Cart
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
     function saveCart() { 
         localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); 
@@ -513,41 +594,31 @@ try {
         const count = cart.reduce((sum, item) => sum + item.qty, 0);
         if(badge) badge.textContent = count > 0 ? `(${count})` : '';
     }
+    updateBadge();
 
-    // --- LOGIKA TOMBOL BARU ---
-    
-    window.initAddToCart = function(btnElement) {
-        const wrapper = btnElement.closest('.action-wrapper');
-        const id = wrapper.dataset.id;
-        const name = wrapper.dataset.name;
-        const price = parseInt(wrapper.dataset.price);
-        const category = wrapper.dataset.category;
-
-        const existingItem = cart.find(item => item.id === id && item.type === 'regular');
-        if (existingItem) {
-            existingItem.qty++;
-        } else {
-            cart.push({ id: id, name: name, price: price, type: 'regular', category: category, qty: 1 });
-        }
-        saveCart();
-    };
-
-    window.updateItemQty = function(btnElement, change) {
-        const wrapper = btnElement.closest('.action-wrapper');
-        const id = wrapper.dataset.id;
-        
-        const itemIndex = cart.findIndex(item => item.id === id && item.type === 'regular');
-        if (itemIndex > -1) {
-            // Jika dikurangi dan hasilnya akan 0 atau kurang, JANGAN hapus. Biarkan minimal 1.
-            // Penghapusan hanya lewat tombol sampah merah.
-            if (change < 0 && cart[itemIndex].qty <= 1) {
-                return; // Do nothing
+    // Logic Scroll Spy
+    const sections = document.querySelectorAll(".section-scroll");
+    const navLinks = document.querySelectorAll(".nav-link");
+    window.addEventListener("scroll", () => {
+        let current = "";
+        sections.forEach((section) => {
+            const sectionTop = section.offsetTop;
+            // Offset -150px agar aktif sebelum mencapai ujung atas persis
+            if (scrollY >= (sectionTop - 150)) {
+                current = section.getAttribute("id");
             }
-            
-            cart[itemIndex].qty += change;
-            saveCart();
-        }
-    };
+        });
+
+        navLinks.forEach((li) => {
+            li.classList.remove("active");
+            if (li.getAttribute("href").includes(current)) {
+                li.classList.add("active");
+            }
+        });
+
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
+    });
 
     // FUNGSI BARU: HAPUS LANGSUNG LEWAT TOMBOL SAMPAH
     window.deleteItemDirectly = function(btnElement) {

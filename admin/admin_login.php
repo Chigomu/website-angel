@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Login — Ibu Angel Bakery</title>
+    <title>Admin Login — Ibuké Enjel Bakery</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
 

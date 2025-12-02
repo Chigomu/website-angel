@@ -10,6 +10,9 @@ $offset = ($page - 1) * $limit;
 $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 
 try {
+    // === PERBAIKAN DI SINI ===
+    // Hanya ambil kategori yang memiliki produk bertipe 'custom'
+    // Menggunakan DISTINCT category FROM products WHERE type = 'custom'
     $stmt_cat = $pdo->query("SELECT DISTINCT category FROM products WHERE type = 'custom' ORDER BY category ASC");
     $categories = $stmt_cat->fetchAll(PDO::FETCH_COLUMN);
 
@@ -33,13 +36,23 @@ try {
     $all_custom = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (Exception $e) { $all_custom = []; $categories = []; }
+
+// Fungsi helper untuk memberikan emoji
+function getCategoryEmoji($categoryName) {
+    if (stripos($categoryName, 'Ulang Tahun') !== false) return '🎈';
+    if (stripos($categoryName, 'Pernikahan') !== false || stripos($categoryName, 'Lamaran') !== false) return '💍';
+    if (stripos($categoryName, 'Seventeen') !== false || stripos($categoryName, 'Remaja') !== false) return '💄';
+    if (stripos($categoryName, 'Wisuda') !== false) return '🎓';
+    if (stripos($categoryName, 'Lebaran') !== false) return '🕌';
+    return '✨'; 
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kue Kustom | Ibu Angel</title>
+  <title>Kue Kustom | Ibuké Enjel</title>
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <?php require_once 'app/dynamic_style.php'; ?>
   <link rel="stylesheet" href="style.css">
@@ -55,17 +68,39 @@ try {
     .custom-header p { color: rgba(255,255,255,0.8); max-width: 600px; margin: 0 auto; font-size: 1.1rem; }
     .section { padding: 20px 20px 30px !important; }
     
-    /* Filter Buttons */
-    .filter-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; margin-top: 30px; }
-    .filter-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 0.9rem; text-decoration: none; }
-    .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #fff; }
+    /* Filter Dropdown */
+    .filter-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 30px; margin-top: 30px; }
+    .filter-label { font-weight: 600; color: var(--text-light); font-size: 1rem; }
+    
+    .category-select {
+        padding: 10px 20px;
+        border: 2px solid var(--accent);
+        border-radius: 30px;
+        background: transparent;
+        color: var(--text-dark);
+        font-family: var(--font-body);
+        font-size: 1rem;
+        cursor: pointer;
+        outline: none;
+        min-width: 200px;
+        text-align: left;
+        font-weight: 600;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D97757%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px top 50%;
+        background-size: 12px auto;
+        padding-right: 40px;
+    }
+    .category-select:hover { background-color: rgba(217, 119, 87, 0.05); }
 
-    /* Custom Product Grid */
+    /* Product List & Card */
     .product-list { gap: 15px !important; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
     .custom-product { position: relative; overflow: hidden; cursor: pointer; }
     .custom-product .img-wrapper { height: 180px !important; position: relative; }
     .custom-product .img-wrapper img { transition: transform 0.5s ease; }
     
+    /* Hover Overlay */
     .hover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 24, 16, 0.7); display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; border-radius: 8px 8px 0 0; }
     .hover-btn { background: var(--accent); color: #fff; padding: 10px 20px; border-radius: 30px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; transform: translateY(20px); transition: transform 0.3s ease; }
     .custom-product:hover .hover-overlay { opacity: 1; }
@@ -85,13 +120,20 @@ try {
     .page-link { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border: 1px solid var(--line-color); border-radius: 4px; text-decoration: none; color: var(--text-dark); font-weight: 600; transition: 0.3s; }
     .page-link:hover, .page-link.active { background: var(--accent); color: white; border-color: var(--accent); }
 
+    /* Modal Form 2 Kolom */
+    .modal-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+    .modal-form label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: var(--text-dark); }
+    .modal-form textarea, .modal-form input { width: 100%; padding: 10px; border: 1px solid var(--line-color); border-radius: 6px; font-family: var(--font-body); background: #fafafa; }
+    
+    @media (max-width: 600px) { .modal-form { grid-template-columns: 1fr; } }
+
     footer { margin-top: 0 !important; padding: 40px 20px 20px !important; }
   </style>
 </head>
 <body>
 
   <nav class="navbar" id="navbar">
-    <a href="index.php" class="logo">Ibu Angel</a>
+    <a href="index.php" class="logo">Ibuké Enjel</a>
     <ul class="nav-links">
       <li><a href="index.php#home">Beranda</a></li>
       <li><a href="index.php#about">Tentang</a></li>
@@ -110,12 +152,15 @@ try {
   <div class="section">
     
     <div class="filter-container reveal">
-        <a href="?category=all" class="filter-btn <?= (!$category_filter || $category_filter == 'all') ? 'active' : '' ?>">Semua</a>
-        <?php foreach($categories as $cat): ?>
-            <a href="?category=<?= urlencode($cat) ?>" class="filter-btn <?= ($category_filter == $cat) ? 'active' : '' ?>">
-                <?= htmlspecialchars($cat) ?>
-            </a>
-        <?php endforeach; ?>
+        <span class="filter-label">Filter sesuai kategori:</span>
+        <select class="category-select" onchange="location = this.value;">
+            <option value="?category=all" <?= (!$category_filter || $category_filter == 'all') ? 'selected' : '' ?>>Semua Kategori</option>
+            <?php foreach($categories as $cat): ?>
+                <option value="?category=<?= urlencode($cat) ?>" <?= ($category_filter == $cat) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($cat) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="product-list">
@@ -135,12 +180,18 @@ try {
                     <div class="info-wrapper">
                         <h3><?= htmlspecialchars($p['name']) ?></h3>
                         <p><?= htmlspecialchars(substr($p['description'], 0, 50)) ?></p>
-                        <span class="price">Mulai Rp <?= number_format($p['price_min'], 0, ',', '.') ?></span>
+                        <span class="price">
+                            <?php if($p['price_min'] > 0): ?>
+                                Mulai Rp <?= number_format($p['price_min'], 0, ',', '.') ?>
+                            <?php else: ?>
+                                Harga Menyesuaikan
+                            <?php endif; ?>
+                        </span>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php else: ?>
-            <p style="text-align: center; width:100%;">Belum ada katalog custom.</p>
+            <p style="text-align: center; width:100%;">Tidak ada produk custom dalam kategori ini.</p>
         <?php endif; ?>
     </div>
 
@@ -166,14 +217,14 @@ try {
   </section>
 
   <footer>
-    <span class="footer-logo">Ibu Angel</span>
-    <p>Dibuat dengan kualitas dan bahan terbaik.</p>
+    <span class="footer-logo"><?= set('footer_title', 'Ibu Angel') ?></span>
+    <p><?= set('footer_desc', 'Dibuat dengan kualitas dan bahan terbaik.') ?></p>
     <div class="socials" style="margin-top: 15px;">
-      <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
-      <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
-      <a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+      <a href="<?= set('social_instagram', '#') ?>" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+      <a href="<?= set('social_facebook', '#') ?>" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
+      <a href="<?= set('social_whatsapp', '#') ?>" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
     </div>
-    <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;">© 2025 Ibu Angel Bakery.</p>
+    <p style="margin-top: 20px; font-size: 0.8rem; opacity: 0.5;"><?= set('footer_copy', '© 2025 Ibu Angel Bakery.') ?></p>
   </footer>
 
   <div id="customModal" class="modal">
@@ -188,11 +239,14 @@ try {
         <p id="customModalPrice">Range Harga</p>
         
         <div class="modal-form">
-          <label>Detail Pesanan</label>
-          <textarea id="customDetails" rows="3" placeholder="Tulis tulisan ucapan, request warna, dll..."></textarea>
-          
-          <label>Tanggal Diperlukan</label>
-          <input type="date" id="customDate">
+          <div>
+              <label>Detail Pesanan</label>
+              <textarea id="customDetails" rows="3" placeholder="Tulis tulisan ucapan, request warna, dll..."></textarea>
+          </div>
+          <div>
+              <label>Tanggal Diperlukan</label>
+              <input type="date" id="customDate">
+          </div>
         </div>
 
         <button id="addCustomToCart" class="btn-primary">Simpan ke Keranjang</button>
@@ -201,16 +255,6 @@ try {
   </div>
 
   <script>
-    // === INIT CART (SAMA DENGAN INDEX.PHP) ===
-    let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
-    function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
-    function updateBadge() {
-        const badge = document.getElementById('cart-badge');
-        const count = cart.reduce((sum, item) => sum + item.qty, 0);
-        if(badge) badge.textContent = count > 0 ? `(${count})` : '';
-    }
-    updateBadge();
-
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) entry.target.classList.add('active');
@@ -230,6 +274,16 @@ try {
     const cDate = document.getElementById("customDate");
 
     let currentProduct = null;
+    
+    // Cart Logic
+    let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
+    function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
+    function updateBadge() {
+        const badge = document.getElementById('cart-badge');
+        const count = cart.reduce((sum, item) => sum + item.qty, 0);
+        if(badge) badge.textContent = count > 0 ? `(${count})` : '';
+    }
+    updateBadge();
 
     // EVENT DELEGATION
     document.addEventListener('click', function(e) {
@@ -254,7 +308,7 @@ try {
     closeCustom.onclick = () => customModal.style.display = "none";
     window.onclick = (e) => { if(e.target == customModal) customModal.style.display = "none"; }
 
-    // === LOGIKA SIMPAN KE KERANJANG (LOCALSTORAGE) ===
+    // === LOGIKA SIMPAN KE KERANJANG ===
     addBtn.addEventListener("click", async () => {
         if(!cDetails.value || !cDate.value) {
             alert("Mohon lengkapi detail dan tanggal!");
@@ -280,7 +334,7 @@ try {
 
         alert("Custom cake ditambahkan ke keranjang!");
         
-        // Tutup Modal & Reset
+        // Tutup
         customModal.style.display = "none";
         cDetails.value = "";
         cDate.value = "";
