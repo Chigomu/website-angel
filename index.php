@@ -11,12 +11,10 @@ $category_filter = isset($_GET['category']) ? $_GET['category'] : '';
 
 try {
     // === LOGIKA DROPDOWN DINAMIS ===
-    // Hanya ambil kategori yang benar-benar memiliki produk 'regular'
-    // Ini otomatis menyembunyikan kategori kosong atau kategori khusus custom
     $stmt_cat = $pdo->query("SELECT DISTINCT category FROM products WHERE type = 'regular' ORDER BY category ASC");
     $categories = $stmt_cat->fetchAll(PDO::FETCH_COLUMN);
 
-    // Hitung Total Produk (Sesuai Filter)
+    // Hitung Total Produk
     $sql_count = "SELECT COUNT(*) FROM products WHERE type = 'regular'";
     if ($category_filter && $category_filter !== 'all') $sql_count .= " AND category = :cat";
     $stmt_count = $pdo->prepare($sql_count);
@@ -51,7 +49,15 @@ try {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
-    /* === STYLE SCROLL SPY (NAVBAR AKTIF) === */
+    /* === FIX TOMBOL HUBUNGI WA === */
+    #lokasi .btn-primary:hover {
+        background-color: var(--text-dark) !important;
+        border-color: var(--text-dark) !important;
+        color: #fff !important;
+        transform: translateY(-2px);
+    }
+
+    /* === STYLE SCROLL SPY === */
     .nav-links a.active {
         color: var(--accent) !important;
         font-weight: 700;
@@ -73,42 +79,57 @@ try {
     .section { padding: 30px 20px !important; }
     .section-header { margin-bottom: 20px !important; }
     .section-header h2 { margin-bottom: 5px !important; font-size: 2.5rem; }
-    .about-container { gap: 30px !important; align-items: start !important; }
-    .feature-list { list-style: none; padding: 0; margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .feature-list li { display: flex; align-items: center; gap: 10px; color: var(--text-dark); font-weight: 500; font-size: 0.95rem; }
-    .feature-list li i { color: var(--accent); }
     
-    /* === FILTER DROPDOWN STYLE === */
-    .filter-container { 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        gap: 15px; 
-        margin-bottom: 30px; 
-        margin-top: 30px; 
+    /* === PERBAIKAN BAGIAN "CERITA KAMI" (ABOUT US) === */
+    .about-container { 
+        gap: 50px !important;        /* Jarak antar gambar dan teks diperlebar agar tidak sesak */
+        align-items: center !important; /* Teks rata tengah vertikal terhadap gambar */
     }
-    .filter-label { font-weight: 600; color: var(--text-light); font-size: 1rem; }
-    
-    .category-select {
-        padding: 10px 20px;
-        border: 2px solid var(--accent);
-        border-radius: 30px;
-        background: transparent;
-        color: var(--text-dark);
-        font-family: var(--font-body);
+    .about-text {
+        padding-right: 15px;        /* Memberi sedikit ruang di kanan teks */
+    }
+    .about-text h3 { 
+        color: var(--accent); 
+        font-size: 1rem; 
+        text-transform: uppercase; 
+        letter-spacing: 1.5px; 
+        margin-bottom: 10px !important; 
+        font-weight: 700;
+    }
+    .about-text h2 { 
+        margin-bottom: 20px !important; 
+        font-size: 2.4rem; 
+        line-height: 1.2; 
+    }
+    .about-text p { 
+        margin-bottom: 20px !important; 
+        color: #666; 
+        line-height: 1.8;           /* Spasi antar baris lebih lega (Rapi) */
         font-size: 1rem;
-        cursor: pointer;
-        outline: none;
-        min-width: 200px;
-        text-align: left;
-        font-weight: 600;
-        appearance: none;
-        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D97757%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-        background-repeat: no-repeat;
-        background-position: right 15px top 50%;
-        background-size: 12px auto;
-        padding-right: 40px;
     }
+    
+    .feature-list { 
+        list-style: none; 
+        padding: 0; 
+        margin-top: 25px; 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 15px;                  /* Jarak antar poin list */
+    }
+    .feature-list li { 
+        display: flex; 
+        align-items: center; 
+        gap: 10px; 
+        color: var(--text-dark); 
+        font-weight: 600; 
+        font-size: 0.95rem; 
+    }
+    .feature-list li i { color: var(--accent); font-size: 1.1rem; }
+    
+    /* === FILTER DROPDOWN === */
+    .filter-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 30px; margin-top: 30px; }
+    .filter-label { font-weight: 600; color: var(--text-light); font-size: 1rem; }
+    .category-select { padding: 10px 20px; border: 2px solid var(--accent); border-radius: 30px; background: transparent; color: var(--text-dark); font-family: var(--font-body); font-size: 1rem; cursor: pointer; outline: none; min-width: 200px; text-align: left; font-weight: 600; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D97757%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto; padding-right: 40px; }
     .category-select:hover { background-color: rgba(217, 119, 87, 0.05); }
     
     /* PRODUK REGULER */
@@ -134,11 +155,14 @@ try {
     @keyframes scroll-seamless { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     
     /* KUE CUSTOM */
-    .custom-banner { padding: 40px 20px !important; margin-top: 20px !important; margin-bottom: 0 !important; }
+    .custom-banner { padding: 30px 20px !important; margin-top: 20px !important; margin-bottom: 0 !important; }
+    .custom-banner h2 { font-size: 2.5rem; margin-bottom: 5px !important; color: #fff; }
+    .custom-banner p { font-size: 1rem; margin-bottom: 25px !important; color: rgba(255,255,255,0.8); }
+
     .custom-banner .product-list { 
         gap: 20px !important; 
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important; 
-        max-width: 1000px; margin: 20px auto 0; text-align: left;
+        max-width: 1000px; margin: 0 auto; text-align: left;
     }
     .custom-product { position: relative; overflow: hidden; cursor: pointer; }
     .custom-product .img-wrapper { height: 180px !important; position: relative; } 
@@ -148,25 +172,26 @@ try {
     .custom-product:hover .hover-overlay { opacity: 1; }
     .custom-product:hover .hover-btn { transform: translateY(0); }
     .custom-product:hover .img-wrapper img { transform: scale(1.1); }
-    .custom-product .info-wrapper { padding: 20px !important; text-align: left !important; background: #fff; }
-    .custom-product .info-wrapper h3 { margin-bottom: 5px !important; font-size: 1.2rem !important; }
-    .custom-product .info-wrapper p { margin-bottom: 10px !important; min-height: 0 !important; line-height: 1.4; font-size: 0.9rem; color: #888; }
-    .custom-product .info-wrapper .price { margin-top: 0 !important; display: block; font-weight: 700; font-size: 1rem; color: var(--accent); }
+
+    .custom-product .info-wrapper { padding: 15px !important; text-align: left !important; background: #fff; }
+    .custom-product .info-wrapper h3 { font-size: 1.1rem !important; margin-bottom: 5px !important; }
+    .custom-product .info-wrapper p { font-size: 0.8rem !important; color: #888; margin-bottom: 5px !important; min-height: 0 !important; line-height: 1.3; }
+    .custom-product .info-wrapper .price { margin-top: 0 !important; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
     .cta-section { background: var(--bg-cream); text-align: center; padding: 50px 20px !important; margin-top: 30px !important; border-top: 1px solid var(--line-color); margin-bottom: 0 !important; }
     .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
 
     #lokasi { margin-top: 40px !important; padding-top: 0 !important; }
     footer { padding: 40px 20px 20px !important; margin-top: 0 !important; }
-    
-    /* RESPONSIVE */
     @media (max-width: 768px) { 
         .hero { padding-top: 120px !important; }
         .product-list { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
         .action-row { flex-direction: column; align-items: stretch; }
         .qty-selector { justify-content: center; } .qty-selector input { width: 100%; }
         .feature-list { grid-template-columns: 1fr; }
-        .filter-container { flex-direction: column; gap: 10px; }
-        .category-select { width: 100%; }
+        
+        /* Mobile About fix */
+        .about-container { grid-template-columns: 1fr; gap: 30px !important; text-align: center; }
+        .about-text { padding-right: 0; }
     }
   </style>
 </head>
@@ -295,7 +320,7 @@ try {
     <h2>Kue Custom</h2>
     <p>Punya desain impian? Kami siap mewujudkannya.</p>
     
-    <div class="product-list" style="max-width: 1000px; margin: 20px auto 0; text-align: left;">
+    <div class="product-list" style="max-width: 1000px; margin: 0 auto; text-align: left;">
       <div class="product-card custom-product" data-category="Ulang Tahun Anak" data-name="Kustom Kue" data-price-min="150000" data-price-max="300000">
         <div class="img-wrapper">
             <img src="https://images.unsplash.com/photo-1558636508-e0db3814bd1d?w=500&q=80" alt="Kids Cake">
@@ -400,12 +425,11 @@ try {
     </div>
   </div>
 
-  <a href="https://wa.me/6289689433798" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none;">
+  <a href="https://wa.me/<?= set('contact_phone') ?>" style="position: fixed; bottom: 30px; right: 30px; background: #25d366; color: #fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-decoration: none;">
     <i class="fab fa-whatsapp"></i>
   </a>
 
   <script>
-    // Logic Cart
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
     function saveCart() { localStorage.setItem('ibuangel_cart', JSON.stringify(cart)); updateBadge(); }
     function updateBadge() {
@@ -415,26 +439,22 @@ try {
     }
     updateBadge();
 
-    // Logic Scroll Spy
     const sections = document.querySelectorAll(".section-scroll");
     const navLinks = document.querySelectorAll(".nav-link");
     window.addEventListener("scroll", () => {
         let current = "";
         sections.forEach((section) => {
             const sectionTop = section.offsetTop;
-            // Offset -150px agar aktif sebelum mencapai ujung atas persis
             if (scrollY >= (sectionTop - 150)) {
                 current = section.getAttribute("id");
             }
         });
-
         navLinks.forEach((li) => {
             li.classList.remove("active");
             if (li.getAttribute("href").includes(current)) {
                 li.classList.add("active");
             }
         });
-
         const navbar = document.getElementById('navbar');
         if (window.scrollY > 50) navbar.classList.add('scrolled'); else navbar.classList.remove('scrolled');
     });

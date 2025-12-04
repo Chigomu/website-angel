@@ -23,7 +23,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
     <link rel="stylesheet" href="../style.css">
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <style>
-        body { padding-top: 85px; background: var(--bg-cream); }
+        body { padding-top: 100px; background: var(--bg-cream); }
         .container { max-width: 1100px; width: 95%; margin: 0 auto 50px; }
         
         h2 { text-align:center; margin-bottom: 5px; color: var(--text-dark); }
@@ -33,7 +33,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
         /* SIDEBAR MENU */
         .settings-menu { 
-            background: #fff; padding: 20px; border-radius: 12px; 
+            background: #fff; padding: 15px; border-radius: 12px; 
             border: 1px solid var(--line-color); position: sticky; top: 100px; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.03); 
         }
@@ -50,36 +50,43 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
         /* TOMBOL SIMPAN (DI DALAM MENU) */
         .btn-save { 
-            background: #2C1810; /* Warna Gelap */
-            color: #fff; 
-            padding: 15px 0; 
-            border: none; 
-            cursor: pointer; 
-            font-size: 0.9rem; 
-            margin-top: 20px; /* Jarak dari menu navigasi */
-            transition: 0.3s; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            width: 100%; 
-            border-radius: 0; /* KOTAK / PERSEGI PANJANG */
+            background: #2C1810; color: #fff; padding: 15px 0; border: none; cursor: pointer; 
+            font-size: 0.9rem; margin-top: 20px; transition: 0.3s; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px; width: 100%; border-radius: 0;
         }
         .btn-save:hover { background: var(--accent); }
 
         /* CONTENT CARD */
-        .settings-content { background: #fff; padding: 40px; border-radius: 12px; border: 1px solid var(--line-color); min-height: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; }
+        .settings-content { 
+            background: #fff; padding: 40px; border-radius: 12px; 
+            border: 1px solid var(--line-color); min-height: 400px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; 
+        }
         
         .tab-pane { display: none; animation: fadeIn 0.3s ease; }
         .tab-pane.active { display: block; }
 
-        .section-title { font-size: 1.5rem; margin-bottom: 25px; color: var(--text-dark); border-bottom: 2px solid var(--line-color); padding-bottom: 10px; margin-top: 0; }
+        .section-title { 
+            font-size: 1.5rem; margin-bottom: 15px; color: var(--text-dark); 
+            border-bottom: 2px solid var(--line-color); padding-bottom: 10px; margin-top: 0; 
+        }
         
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
+        /* GRID SYSTEM UNTUK FORM (2 KOLOM) - PERBAIKAN UTAMA */
+        .form-row { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 15px; 
+        }
         .form-group { margin-bottom: 15px; }
         .form-group.full { grid-column: span 2; }
 
         label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
-        input[type="text"], textarea, select, input[type="number"] { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; background: #fafafa; font-size: 0.95rem; transition: 0.3s; }
+        
+        input[type="text"], textarea, select, input[type="number"] { 
+            width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; 
+            font-family: inherit; background: #fafafa; font-size: 0.95rem; transition: 0.3s; 
+        }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background: #fff; }
         textarea { min-height: 80px; resize: vertical; }
         
@@ -161,30 +168,35 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                                 <input type="text" value="<?= val('color_text_dark', $data) ?>" readonly>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Warna Aksen (Tombol)</label>
-                            <div class="color-input-group">
-                                <input type="color" name="settings[color_accent]" value="<?= val('color_accent', $data) ?: '#D97757' ?>">
-                                <input type="text" value="<?= val('color_accent', $data) ?>" readonly>
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Warna Aksen (Tombol)</label>
+                        <div class="color-input-group">
+                            <input type="color" name="settings[color_accent]" value="<?= val('color_accent', $data) ?: '#D97757' ?>">
+                            <input type="text" value="<?= val('color_accent', $data) ?>" readonly>
                         </div>
                     </div>
                 </div>
 
                 <div id="tab-home" class="tab-pane">
                     <div class="section-title">Halaman Utama (Home)</div>
+                    
                     <div class="form-group full">
                         <label>Judul Hero</label>
                         <textarea name="settings[hero_title]" style="height:60px;"><?= val('hero_title', $data) ?></textarea>
                     </div>
-                    <div class="form-group full">
-                        <label>Deskripsi Hero</label>
-                        <textarea name="settings[hero_desc]"><?= val('hero_desc', $data) ?></textarea>
+                    
+                    <div class="form-row">
+                         <div class="form-group">
+                            <label>Deskripsi Hero</label>
+                            <textarea name="settings[hero_desc]" style="height:100px;"><?= val('hero_desc', $data) ?></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Teks Marquee</label>
+                            <textarea name="settings[marquee_text]" style="height:100px;"><?= val('marquee_text', $data) ?></textarea>
+                        </div>
                     </div>
-                    <div class="form-group full">
-                        <label>Teks Marquee</label>
-                        <input type="text" name="settings[marquee_text]" value="<?= val('marquee_text', $data) ?>">
-                    </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>Judul About</label>
@@ -203,6 +215,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
                 <div id="tab-custom" class="tab-pane">
                     <div class="section-title">Halaman Custom</div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Judul Header</label>
@@ -213,20 +226,22 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <input type="text" name="settings[cta_title]" value="<?= val('cta_title', $data) ?>">
                         </div>
                     </div>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label>Deskripsi Header</label>
-                            <textarea name="settings[custom_desc]"><?= val('custom_desc', $data) ?></textarea>
+                            <textarea name="settings[custom_desc]" style="height:100px;"><?= val('custom_desc', $data) ?></textarea>
                         </div>
                         <div class="form-group">
                             <label>Deskripsi CTA</label>
-                            <textarea name="settings[cta_desc]"><?= val('cta_desc', $data) ?></textarea>
+                            <textarea name="settings[cta_desc]" style="height:100px;"><?= val('cta_desc', $data) ?></textarea>
                         </div>
                     </div>
                 </div>
 
                 <div id="tab-contact" class="tab-pane">
                     <div class="section-title">Kontak & Lokasi</div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>No. WhatsApp (Utama)</label>
@@ -239,20 +254,24 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                     </div>
                     <div class="form-group full">
                         <label>Alamat Lengkap</label>
-                        <textarea name="settings[contact_address]"><?= val('contact_address', $data) ?></textarea>
+                        <textarea name="settings[contact_address]" style="height:80px;"><?= val('contact_address', $data) ?></textarea>
                     </div>
                 </div>
 
                 <div id="tab-footer" class="tab-pane">
                     <div class="section-title">Footer & Sosial Media</div>
-                    <div class="form-group full">
-                        <label>Judul Footer (Nama Toko)</label>
-                        <input type="text" name="settings[footer_title]" value="<?= val('footer_title', $data) ?: 'Ibu Angel' ?>">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Judul Footer</label>
+                            <input type="text" name="settings[footer_title]" value="<?= val('footer_title', $data) ?: 'Ibu Angel' ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>Deskripsi Singkat</label>
+                            <input type="text" name="settings[footer_desc]" value="<?= val('footer_desc', $data) ?: 'Dibuat dengan kualitas dan bahan terbaik.' ?>">
+                        </div>
                     </div>
-                    <div class="form-group full">
-                        <label>Deskripsi Singkat</label>
-                        <input type="text" name="settings[footer_desc]" value="<?= val('footer_desc', $data) ?: 'Dibuat dengan kualitas dan bahan terbaik.' ?>">
-                    </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Link Instagram</label>
@@ -263,13 +282,15 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <input type="text" name="settings[social_facebook]" value="<?= val('social_facebook', $data) ?>">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Link WhatsApp Footer</label>
-                        <input type="text" name="settings[social_whatsapp]" value="<?= val('social_whatsapp', $data) ?>">
-                    </div>
-                    <div class="form-group full">
-                        <label>Teks Copyright</label>
-                        <input type="text" name="settings[footer_copy]" value="<?= val('footer_copy', $data) ?: '© 2025 Ibu Angel Bakery.' ?>">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Link WhatsApp Footer</label>
+                            <input type="text" name="settings[social_whatsapp]" value="<?= val('social_whatsapp', $data) ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>Teks Copyright</label>
+                            <input type="text" name="settings[footer_copy]" value="<?= val('footer_copy', $data) ?: '© 2025 Ibuké Enjel Bakery.' ?>">
+                        </div>
                     </div>
                 </div>
 
