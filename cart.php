@@ -6,7 +6,7 @@ require_once 'app/settings_loader.php';
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Keranjang Belanja | Ibu Angel</title>
+  <title>Keranjang Belanja | Ibuké Enjel</title>
   <link rel="stylesheet" href="style.css">
   <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
   <?php require_once 'app/dynamic_style.php'; ?>
@@ -268,7 +268,8 @@ require_once 'app/settings_loader.php';
                     <span id="total-display">Rp 0</span>
                 </div>
 
-                <div class="cf-turnstile" data-sitekey="0x4AAAAAACDUspNryUVk8fAB" style="margin-top: 20px;"></div>
+                <div class="cf-turnstile" data-sitekey="0x4AAAAAACDUspNryUVk8fAB" style="margin-top: 20px;"></div> <!-- Hosting -->
+                <!--<div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" style="margin-top: 20px;"></div>-->
 
                 <button type="submit" class="btn-whatsapp">
                     <i class="fab fa-whatsapp"></i> Kirim Pesanan
@@ -473,7 +474,7 @@ require_once 'app/settings_loader.php';
             const result = await response.json();
 
             if(result.status === 'success') {
-                let msg = `Halo Ibu Angel, saya *${name}* ingin memesan:%0A%0A`;
+                let msg = `Halo Ibuké Enjel, saya *${name}* ingin memesan:%0A%0A`;
                 cart.forEach((item, i) => {
                     const subtotal = item.price * item.qty;
                     msg += `${i+1}. ${item.name} (x${item.qty}) - Rp ${subtotal.toLocaleString('id-ID')}%0A`;
