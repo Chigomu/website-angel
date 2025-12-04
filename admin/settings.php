@@ -23,7 +23,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
     <link rel="stylesheet" href="../style.css">
     <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
     <style>
-        body { padding-top: 100px; background: var(--bg-cream); }
+        body { padding-top: 85px; background: var(--bg-cream); }
         .container { max-width: 1100px; width: 95%; margin: 0 auto 50px; }
         
         h2 { text-align:center; margin-bottom: 5px; color: var(--text-dark); }
@@ -31,67 +31,43 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
         .settings-grid { display: grid; grid-template-columns: 240px 1fr; gap: 30px; align-items: start; }
 
-        /* SIDEBAR MENU */
-        .settings-menu { 
-            background: #fff; padding: 15px; border-radius: 12px; 
-            border: 1px solid var(--line-color); position: sticky; top: 100px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03); 
-        }
-        
-        .tab-btn { 
-            display: block; width: 100%; text-align: left; padding: 12px 15px; 
-            text-decoration: none; color: var(--text-light); font-weight: 500; 
-            border-radius: 8px; margin-bottom: 5px; transition: 0.3s; 
-            border: 1px solid transparent; background: transparent; 
-            cursor: pointer; font-family: inherit; font-size: 0.95rem; 
-        }
+        .settings-menu { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid var(--line-color); position: sticky; top: 100px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .tab-btn { display: block; width: 100%; text-align: left; padding: 12px 15px; text-decoration: none; color: var(--text-light); font-weight: 500; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; border: 1px solid transparent; background: transparent; cursor: pointer; font-family: inherit; font-size: 0.95rem; }
         .tab-btn:hover { background: #f5f5f5; color: var(--text-dark); }
         .tab-btn.active { background: var(--accent); color: #fff; font-weight: 600; box-shadow: 0 4px 10px rgba(217, 119, 87, 0.2); }
 
-        /* TOMBOL SIMPAN (DI DALAM MENU) */
-        .btn-save { 
-            background: #2C1810; color: #fff; padding: 15px 0; border: none; cursor: pointer; 
-            font-size: 0.9rem; margin-top: 20px; transition: 0.3s; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 1px; width: 100%; border-radius: 0;
-        }
-        .btn-save:hover { background: var(--accent); }
-
-        /* CONTENT CARD */
-        .settings-content { 
-            background: #fff; padding: 40px; border-radius: 12px; 
-            border: 1px solid var(--line-color); min-height: 400px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; 
-        }
+        .settings-content { background: #fff; padding: 40px; border-radius: 12px; border: 1px solid var(--line-color); min-height: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; }
         
         .tab-pane { display: none; animation: fadeIn 0.3s ease; }
         .tab-pane.active { display: block; }
 
-        .section-title { 
-            font-size: 1.5rem; margin-bottom: 15px; color: var(--text-dark); 
-            border-bottom: 2px solid var(--line-color); padding-bottom: 10px; margin-top: 0; 
-        }
+        .section-title { font-size: 1.5rem; margin-bottom: 25px; color: var(--text-dark); border-bottom: 2px solid var(--line-color); padding-bottom: 10px; margin-top: 0; }
         
-        /* GRID SYSTEM UNTUK FORM (2 KOLOM) - PERBAIKAN UTAMA */
-        .form-row { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            margin-bottom: 15px; 
-        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
         .form-group.full { grid-column: span 2; }
 
         label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
-        
-        input[type="text"], textarea, select, input[type="number"] { 
-            width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; 
-            font-family: inherit; background: #fafafa; font-size: 0.95rem; transition: 0.3s; 
-        }
+        input[type="text"], textarea, select, input[type="number"] { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; background: #fafafa; font-size: 0.95rem; transition: 0.3s; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); background: #fff; }
         textarea { min-height: 80px; resize: vertical; }
         
         .color-input-group { display: flex; align-items: center; gap: 10px; background: #fafafa; padding: 5px; border-radius: 6px; border: 1px solid #ccc; }
         input[type="color"] { border: none; width: 40px; height: 35px; cursor: pointer; background: none; padding: 0; border-radius: 4px; }
+        
+        .btn-save { background: #2C1810; color: #fff; padding: 15px 0; border: none; cursor: pointer; font-size: 0.9rem; margin-top: 20px; transition: 0.3s; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; width: 100%; border-radius: 0; }
+        .btn-save:hover { background: var(--accent); }
+
+        /* === STYLE TABS & PREVIEW GAMBAR === */
+        .img-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .img-tab-btn { padding: 5px 15px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
+        .img-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .img-input-group { display: none; }
+        .img-input-group.active { display: block; }
+        
+        /* Preview Gambar Kecil (Seperti di Edit Product) */
+        .current-img-preview { width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; margin-right: 10px; }
+        .img-row { display: flex; align-items: center; margin-bottom: 10px; }
         
         .alert { background: #d4edda; color: #155724; padding: 15px; margin-bottom: 30px; border-radius: 8px; text-align: center; border: 1px solid #c3e6cb; }
 
@@ -120,7 +96,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
         <div class="alert">Perubahan berhasil disimpan!</div>
     <?php endif; ?>
 
-    <form method="POST" id="settingsForm">
+    <form method="POST" id="settingsForm" enctype="multipart/form-data">
         <div class="settings-grid">
             
             <div class="settings-menu">
@@ -129,7 +105,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                 <button type="button" class="tab-btn" onclick="openTab('custom', this)">🎂 Halaman Custom</button>
                 <button type="button" class="tab-btn" onclick="openTab('contact', this)">📞 Kontak & Lokasi</button>
                 <button type="button" class="tab-btn" onclick="openTab('footer', this)">🦶 Footer & Sosmed</button>
-                
                 <button type="submit" class="btn-save">Simpan Perubahan</button>
             </div>
 
@@ -152,7 +127,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <input type="number" name="settings[style_base_size]" value="<?= val('style_base_size', $data) ?: '16' ?>" min="12" max="24">
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Warna Background</label>
@@ -169,7 +143,7 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             </div>
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group full">
                         <label>Warna Aksen (Tombol)</label>
                         <div class="color-input-group">
                             <input type="color" name="settings[color_accent]" value="<?= val('color_accent', $data) ?: '#D97757' ?>">
@@ -180,12 +154,10 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
                 <div id="tab-home" class="tab-pane">
                     <div class="section-title">Halaman Utama (Home)</div>
-                    
                     <div class="form-group full">
                         <label>Judul Hero</label>
                         <textarea name="settings[hero_title]" style="height:60px;"><?= val('hero_title', $data) ?></textarea>
                     </div>
-                    
                     <div class="form-row">
                          <div class="form-group">
                             <label>Deskripsi Hero</label>
@@ -202,11 +174,35 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <label>Judul About</label>
                             <input type="text" name="settings[about_title]" value="<?= val('about_title', $data) ?>">
                         </div>
+                        
                         <div class="form-group">
-                            <label>URL Gambar About</label>
-                            <input type="text" name="settings[about_img]" value="<?= val('about_img', $data) ?>">
+                            <label>Gambar About</label>
+                            
+                            <?php if (!empty(val('about_img', $data))): ?>
+                                <div class="img-row">
+                                    <?php 
+                                        $imgSrc = val('about_img', $data);
+                                        if(!preg_match("~^(?:f|ht)tps?://~i", $imgSrc)) { $imgSrc = "../" . $imgSrc; }
+                                    ?>
+                                    <img src="<?= $imgSrc ?>" class="current-img-preview">
+                                    <small style="color:#888;">Gambar saat ini</small>
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="img-tabs">
+                                <button type="button" class="img-tab-btn active" onclick="switchImgTab('upload')">Upload File</button>
+                                <button type="button" class="img-tab-btn" onclick="switchImgTab('url')">Pakai URL</button>
+                            </div>
+                            
+                            <div id="tab-upload" class="img-input-group active">
+                                <input type="file" name="about_img_file" accept="image/*" style="background:#fafafa; padding:8px; width:100%;">
+                            </div>
+                            <div id="tab-url" class="img-input-group">
+                                <input type="text" name="about_img_url" placeholder="https://..." value="<?= preg_match("~^(?:f|ht)tps?://~i", val('about_img', $data)) ? val('about_img', $data) : '' ?>">
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="form-group full">
                         <label>Deskripsi About</label>
                         <textarea name="settings[about_desc]" style="height:120px;"><?= val('about_desc', $data) ?></textarea>
@@ -215,7 +211,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
                 <div id="tab-custom" class="tab-pane">
                     <div class="section-title">Halaman Custom</div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Judul Header</label>
@@ -226,7 +221,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <input type="text" name="settings[cta_title]" value="<?= val('cta_title', $data) ?>">
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <label>Deskripsi Header</label>
@@ -241,7 +235,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
                 <div id="tab-contact" class="tab-pane">
                     <div class="section-title">Kontak & Lokasi</div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>No. WhatsApp (Utama)</label>
@@ -260,7 +253,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
 
                 <div id="tab-footer" class="tab-pane">
                     <div class="section-title">Footer & Sosial Media</div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Judul Footer</label>
@@ -271,7 +263,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                             <input type="text" name="settings[footer_desc]" value="<?= val('footer_desc', $data) ?: 'Dibuat dengan kualitas dan bahan terbaik.' ?>">
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label>Link Instagram</label>
@@ -308,21 +299,6 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
                 e.target.nextElementSibling.value = e.target.value;
             });
         });
-
-        const form = document.getElementById('settingsForm');
-        let isFormDirty = false;
-
-        form.addEventListener('change', () => isFormDirty = true);
-        form.addEventListener('input', () => isFormDirty = true);
-        
-        form.addEventListener('submit', () => isFormDirty = false);
-
-        window.addEventListener('beforeunload', (e) => {
-            if (isFormDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        });
     });
 
     function openTab(tabName, btn) {
@@ -330,6 +306,20 @@ function val($key, $data) { return htmlspecialchars($data[$key] ?? ''); }
         document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active'));
         document.getElementById('tab-' + tabName).classList.add('active');
         btn.classList.add('active');
+    }
+
+    function switchImgTab(mode) {
+        document.querySelectorAll('.img-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.img-input-group').forEach(g => g.classList.remove('active'));
+        if(mode === 'upload') {
+            document.querySelectorAll('.img-tab-btn')[0].classList.add('active');
+            document.getElementById('tab-upload').classList.add('active');
+            document.querySelector('input[name="about_img_url"]').value = ''; 
+        } else {
+            document.querySelectorAll('.img-tab-btn')[1].classList.add('active');
+            document.getElementById('tab-url').classList.add('active');
+            document.querySelector('input[name="about_img_file"]').value = ''; 
+        }
     }
 </script>
 
