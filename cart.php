@@ -20,9 +20,9 @@ require_once 'app/settings_loader.php';
     
     .section { padding: 20px !important; }
 
-    /* === FIX TOMBOL 'MULAI BELANJA' (Agar tidak hilang saat hover) === */
+    /* === FIX TOMBOL 'MULAI BELANJA' === */
     #empty-cart-msg .btn-primary:hover {
-        background-color: var(--text-dark); /* Warna gelap saat hover */
+        background-color: var(--text-dark);
         color: #fff;
         border-color: var(--text-dark);
     }
@@ -58,27 +58,70 @@ require_once 'app/settings_loader.php';
         border-radius: 12px;
         border: 1px solid var(--line-color);
         box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
     }
 
+    /* === ITEM KERANJANG (Diambil dari File Referensi) === */
     .cart-item {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
         padding: 15px 0;
         border-bottom: 1px dashed var(--line-color);
+        animation: fadeIn 0.3s ease;
     }
     .cart-item:last-child { border-bottom: none; }
 
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .item-info { flex: 1; padding-right: 15px; }
     .item-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: var(--text-dark); }
     .item-info .price { color: var(--text-light); font-size: 0.9rem; }
-    .custom-details { font-size: 0.8rem; color: #777; margin-top: 5px; background: #fafafa; padding: 5px 10px; border-radius: 5px; display: inline-block; }
+    
+    /* Style untuk Custom Note & Read More */
+    .read-more-link {
+        color: var(--accent); cursor: pointer; text-decoration: underline;
+        font-weight: 600; margin-left: 5px; font-size: 0.75rem;
+    }
+    .read-more-link:hover { color: var(--text-dark); }
+
+    /* Controls Wrapper */
+    .cart-controls-wrapper { display: flex; align-items: center; }
     
     .qty-wrapper {
-        display: flex; align-items: center; border: 1px solid var(--line-color); border-radius: 5px; overflow: hidden;
+        display: flex; align-items: center; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;
     }
-    .qty-btn { width: 30px; height: 30px; border: none; background: #fff; cursor: pointer; transition: 0.2s; }
+    .qty-btn { 
+        width: 30px; height: 30px; border: none; background: #fff; cursor: pointer; transition: 0.2s; 
+        display: flex; align-items: center; justify-content: center;
+    }
     .qty-btn:hover { background: #eee; }
-    .qty-val { padding: 0 10px; font-weight: 600; font-size: 0.9rem; }
+    .qty-val { padding: 0 10px; font-weight: 600; font-size: 0.9rem; min-width: 30px; text-align: center; }
+
+    .btn-delete-item {
+        color: #c0392b; background: none; border: none; cursor: pointer; margin-left: 15px; font-size: 1rem;
+        transition: 0.2s;
+    }
+    .btn-delete-item:hover { color: #e74c3c; transform: scale(1.1); }
+
+    /* === PAGINATION (Fitur Baru) === */
+    .cart-pagination {
+        display: flex; justify-content: center; align-items: center; gap: 15px;
+        margin-top: auto; padding-top: 20px; border-top: 2px solid #f9f9f9;
+    }
+    .page-btn {
+        background: #fff; border: 1px solid var(--accent); color: var(--accent);
+        width: 32px; height: 32px; border-radius: 50%;
+        cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    }
+    .page-btn:hover { background: var(--accent); color: #fff; }
+    .page-btn:disabled { border-color: #ddd; color: #ccc; cursor: not-allowed; background: #fff; }
+    .page-info { font-size: 0.9rem; font-weight: 600; color: #777; }
 
     /* TOMBOL AKSI KERANJANG */
     .cart-actions {
@@ -108,7 +151,7 @@ require_once 'app/settings_loader.php';
         box-shadow: 0 5px 20px rgba(0,0,0,0.03);
         position: sticky;
         top: 100px;
-        text-align: center; /* Agar Turnstile di tengah */
+        text-align: center;
     }
 
     .form-header { border-bottom: 2px solid var(--accent); padding-bottom: 15px; margin-bottom: 20px; text-align: left; }
@@ -124,11 +167,7 @@ require_once 'app/settings_loader.php';
     .summary-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; color: var(--text-light); }
     .summary-total { display: flex; justify-content: space-between; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #ccc; font-weight: 700; font-size: 1.2rem; color: var(--text-dark); }
 
-    /* === FIX TURNSTILE CENTERING === */
-    .cf-turnstile {
-        margin: 20px auto;
-        display: table; /* Trik agar container mengikuti lebar konten dan bisa di-margin auto */
-    }
+    .cf-turnstile { margin: 20px auto; display: table; }
 
     .btn-whatsapp {
         width: 100%; padding: 14px; background: #25d366; color: #fff; border: none; border-radius: 8px;
@@ -136,10 +175,19 @@ require_once 'app/settings_loader.php';
         display: flex; align-items: center; justify-content: center; gap: 10px;
     }
     .btn-whatsapp:hover { background: #1ebd59; box-shadow: 0 5px 15px rgba(37, 211, 102, 0.3); }
-    
+
+    /* === MODAL NOTE (Fitur Baru) === */
+    #noteModal .modal-content {
+        display: block !important; width: 90%; max-width: 450px; height: auto; 
+        margin: 15vh auto; padding: 30px; text-align: left; border-radius: 12px;
+    }
+
     @media (max-width: 850px) {
         .checkout-grid { grid-template-columns: 1fr; }
         .cart-section, .checkout-form { padding: 20px; }
+        .cart-item { flex-wrap: wrap; }
+        .item-info { width: 100%; margin-bottom: 10px; padding-right: 0; }
+        .cart-controls-wrapper { margin-left: auto; }
     }
   </style>
 </head>
@@ -170,7 +218,16 @@ require_once 'app/settings_loader.php';
         
         <div class="cart-section">
             <h3 style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Daftar Pesanan</h3>
-            <div id="cart-items-list"></div>
+            
+            <!-- Container Item (Diganti sistemnya) -->
+            <div id="cart-items-container" style="flex: 1;"></div>
+
+            <!-- Kontrol Pagination (Fitur Baru) -->
+            <div id="pagination-controls" class="cart-pagination" style="display: none;">
+                <button class="page-btn" onclick="changePage(-1)" id="btn-prev"><i class="fas fa-chevron-left"></i></button>
+                <span class="page-info" id="page-indicator">1 / 1</span>
+                <button class="page-btn" onclick="changePage(1)" id="btn-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
 
             <div class="cart-actions">
                 <a href="index.php#produk" class="btn-secondary">
@@ -223,11 +280,28 @@ require_once 'app/settings_loader.php';
     </div>
 </div>
 
+<!-- === MODAL POPUP UNTUK NOTE (Fitur Baru) === -->
+<div id="noteModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeNoteModal">&times;</span>
+        <h3 style="margin-bottom: 15px; font-size: 1.5rem; color: var(--accent);">Catatan Pesanan</h3>
+        <div style="background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+            <p id="fullNoteContent" style="white-space: pre-wrap; color: var(--text-dark); line-height: 1.6; margin: 0;"></p>
+        </div>
+        <p style="margin-top: 15px; font-size: 0.85rem; color: #888;">
+            <i class="fas fa-info-circle"></i> Tanggal: <span id="noteDate" style="font-weight: 600;"></span>
+        </p>
+    </div>
+</div>
+
 <script>
     const ADMIN_WA = "<?= set('contact_phone') ?>";
-</script>
-<script>
     let cart = JSON.parse(localStorage.getItem('ibuangel_cart')) || [];
+    
+    // Variabel Pagination
+    let currentPage = 1;
+    const itemsPerPage = 4;
+    const CHAR_LIMIT = 25; 
 
     function initCart() {
         if (cart.length === 0) {
@@ -236,40 +310,107 @@ require_once 'app/settings_loader.php';
             return;
         }
 
-        const listContainer = document.getElementById('cart-items-list');
-        listContainer.innerHTML = '';
+        // Hitung Total
         let total = 0;
-
-        cart.forEach((item, index) => {
-            const itemTotal = item.price * item.qty;
-            total += itemTotal;
-            
-            let customHtml = '';
-            if(item.type === 'custom') {
-                customHtml = `<div class="custom-details">Note: ${item.details} <br> Tgl: ${item.date}</div>`;
-            }
-
-            listContainer.innerHTML += `
-            <div class="cart-item">
-                <div class="item-info">
-                    <h4>${item.name} <span style="font-size:0.8rem; color:var(--accent);">x${item.qty}</span></h4>
-                    <div class="price">Rp ${item.price.toLocaleString('id-ID')}</div>
-                    ${customHtml}
-                </div>
-                <div class="qty-wrapper">
-                    <button class="qty-btn" onclick="updateQty(${index}, -1)">-</button>
-                    <span class="qty-val">${item.qty}</span>
-                    <button class="qty-btn" onclick="updateQty(${index}, 1)">+</button>
-                </div>
-                <button onclick="deleteItem(${index})" style="color:#c0392b; background:none; border:none; cursor:pointer; margin-left:10px;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>`;
-        });
-
+        cart.forEach(i => total += i.price * i.qty);
         document.getElementById('subtotal-display').innerText = 'Rp ' + total.toLocaleString('id-ID');
         document.getElementById('total-display').innerText = 'Rp ' + total.toLocaleString('id-ID');
         updateBadge();
+
+        renderPage(); // Render item dengan pagination
+    }
+
+    // === LOGIKA RENDER DENGAN PAGINATION & FITUR BARU ===
+    function renderPage() {
+        const container = document.getElementById('cart-items-container');
+        const paginationControls = document.getElementById('pagination-controls');
+        
+        container.innerHTML = '';
+
+        const totalPages = Math.ceil(cart.length / itemsPerPage);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const itemsToShow = cart.slice(startIndex, endIndex);
+
+        itemsToShow.forEach((item, index) => {
+            const originalIndex = startIndex + index; 
+            
+            let customHtml = '';
+            
+            // Logika "Read More" untuk Custom Note
+            if(item.type === 'custom') {
+                let displayText = item.details;
+                let expandAction = '';
+
+                if (item.details.length > CHAR_LIMIT) {
+                    displayText = item.details.substring(0, CHAR_LIMIT) + '...';
+                    expandAction = `<span class="read-more-link" onclick="openNoteModal(${originalIndex})">Lihat</span>`;
+                }
+
+                customHtml = `<div style="font-size: 0.8rem; color: #666; background: #f9f9f9; padding: 4px 8px; border-radius: 4px; margin-top: 5px; display: inline-block;">
+                    <i class="fas fa-pen" style="font-size:0.7rem; margin-right:4px;"></i> 
+                    ${displayText} ${expandAction}
+                </div>`;
+            }
+
+            container.innerHTML += `
+            <div class="cart-item">
+                <div class="item-info">
+                    <h4>${item.name}</h4>
+                    <div class="price">
+                        Rp ${item.price.toLocaleString('id-ID')} 
+                        <span style="font-size:0.8rem; color:#888;"> x ${item.qty}</span>
+                    </div>
+                    ${customHtml}
+                </div>
+                
+                <div class="cart-controls-wrapper">
+                    <div class="qty-wrapper">
+                        <button class="qty-btn" onclick="updateQty(${originalIndex}, -1)"><i class="fas fa-minus" style="font-size:0.7rem"></i></button>
+                        <span class="qty-val">${item.qty}</span>
+                        <button class="qty-btn" onclick="updateQty(${originalIndex}, 1)"><i class="fas fa-plus" style="font-size:0.7rem"></i></button>
+                    </div>
+                    <button onclick="deleteItem(${originalIndex})" class="btn-delete-item" title="Hapus Item">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>`;
+        });
+
+        // Update Tombol Pagination
+        if (totalPages > 1) {
+            paginationControls.style.display = 'flex';
+            document.getElementById('page-indicator').innerText = `Halaman ${currentPage} / ${totalPages}`;
+            document.getElementById('btn-prev').disabled = (currentPage === 1);
+            document.getElementById('btn-next').disabled = (currentPage === totalPages);
+        } else {
+            paginationControls.style.display = 'none';
+        }
+    }
+
+    // === LOGIKA MODAL POPUP ===
+    const noteModal = document.getElementById("noteModal");
+    const closeNoteBtn = document.getElementById("closeNoteModal");
+    const noteContent = document.getElementById("fullNoteContent");
+    const noteDate = document.getElementById("noteDate");
+
+    function openNoteModal(index) {
+        const item = cart[index];
+        noteContent.innerText = item.details;
+        noteDate.innerText = item.date;
+        noteModal.style.display = "block";
+    }
+
+    closeNoteBtn.onclick = () => noteModal.style.display = "none";
+    window.onclick = (e) => { if (e.target == noteModal) noteModal.style.display = "none"; };
+
+    // Fungsi Navigasi
+    function changePage(direction) {
+        currentPage += direction;
+        renderPage();
     }
 
     function updateQty(index, change) {
@@ -307,9 +448,6 @@ require_once 'app/settings_loader.php';
         const formData = new FormData(document.getElementById('checkoutForm'));
         const turnstileToken = formData.get('cf-turnstile-response'); 
 
-        // === VALIDASI TURNSTILE SEMENTARA DI CLIENT ===
-        // Untuk localhost, token dummy '1x000...' akan selalu valid secara visual.
-        // Di server production, Anda harus cek token ini ke API Cloudflare.
         if (!turnstileToken) {
             alert("Silakan selesaikan verifikasi keamanan (Captcha) terlebih dahulu.");
             return;
