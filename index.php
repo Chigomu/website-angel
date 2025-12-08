@@ -294,9 +294,26 @@ try {
     .custom-product:hover .hover-btn { transform: translateY(0); }
     .custom-product:hover .img-wrapper img { transform: scale(1.1); }
 
-    .custom-product .info-wrapper { padding: 15px !important; text-align: left !important; background: #fff; }
-    .custom-product .info-wrapper h3 { font-size: 1.1rem !important; margin-bottom: 5px !important; }
-    .custom-product .info-wrapper p { font-size: 0.8rem !important; color: #888; margin-bottom: 5px !important; min-height: 0 !important; line-height: 1.3; }
+   /* Pastikan Text Align Left untuk Custom Product */
+    .custom-product .info-wrapper { 
+        padding: 15px !important; 
+        text-align: left !important; /* RATA KIRI */
+        background: #fff; 
+        display: block !important;
+    }
+    .custom-product .info-wrapper h3 { 
+        font-size: 1.1rem !important; 
+        margin-bottom: 5px !important; 
+        text-align: left !important; /* RATA KIRI */
+    }
+    .custom-product .info-wrapper p { 
+        font-size: 0.8rem !important; 
+        color: #888; 
+        margin-bottom: 5px !important; 
+        min-height: 0 !important; 
+        line-height: 1.3; 
+        text-align: left !important; /* RATA KIRI */
+    }
     .custom-product .info-wrapper .price { margin-top: 0 !important; font-size: 0.95rem; font-weight: 700; color: var(--accent); }
     .cta-section { background: var(--bg-cream); text-align: center; padding: 50px 20px !important; margin-top: 30px !important; border-top: 1px solid var(--line-color); margin-bottom: 0 !important; }
     .cta-section .btn-primary:hover, #addCustomToCart:hover { background-color: #c86445 !important; border-color: #c86445 !important; color: #fff !important; transform: translateY(-2px); }
