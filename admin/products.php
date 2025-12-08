@@ -167,7 +167,7 @@ $total_pages = ceil($total / $limit);
                 <div class="action-links">
                   <a href="detail_product.php?id=<?= $p['id'] ?>" class="btn-action btn-view" title="Lihat Detail"><i class="fas fa-eye"></i></a>
                   <a href="edit_product.php?id=<?= $p['id'] ?>" class="btn-action btn-edit" title="Edit"><i class="fas fa-edit"></i></a>
-                  <a href="delete_product.php?id=<?= $p['id'] ?>" class="btn-action btn-delete" onclick="return confirm('Hapus?')" title="Hapus"><i class="fas fa-trash"></i></a>
+                  <a href="delete_product.php?id=<?= $p['id'] ?>" class="btn-action btn-delete" onclick="return confirm('Yakin ingin menghapus produk? Proses ini tidak bisa dibatalkan!')" title="Hapus"><i class="fas fa-trash"></i></a>
                 </div>
               </td>
             </tr>

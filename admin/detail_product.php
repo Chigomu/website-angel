@@ -182,7 +182,7 @@ if (!$product) { die("Produk tidak ditemukan."); }
                     <a href="edit_product.php?id=<?= $product['id'] ?>" class="btn-primary" style="border-radius:4px;">
                         <i class="fas fa-edit"></i> Edit Produk
                     </a>
-                    <a href="delete_product.php?id=<?= $product['id'] ?>" class="btn-back" onclick="return confirm('Hapus produk ini?')" style="border-color: #c0392b; color: #c0392b;">
+                    <a href="delete_product.php?id=<?= $product['id'] ?>" class="btn-back" onclick="return confirm('Yakin ingin menghapus produk? Proses ini tidak bisa dibatalkan!')" style="border-color: #c0392b; color: #c0392b;">
                         <i class="fas fa-trash"></i> Hapus
                     </a>
                 </div>

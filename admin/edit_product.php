@@ -58,25 +58,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <style>
         body { padding-top: 85px; background-color: var(--bg-cream); }
         .section { padding-top: 20px !important; }
+        
         .edit-container { max-width: 1200px; width: 95%; margin: 0 auto 50px; background: #fff; padding: 40px; border-radius: 12px; border: 1px solid var(--line-color); }
-        .edit-header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid var(--line-color); padding-bottom: 20px; }
+        
+        /* HEADER RATA KIRI & RAPAT */
+        .edit-header { text-align: left; margin-bottom: 25px; border-bottom: 1px solid var(--line-color); padding-bottom: 15px; }
+        .edit-header h2 { margin-bottom: 5px; }
+        .edit-header p { color: #888; margin: 0; font-size: 0.95rem; }
+
+        /* GRID SYSTEM SAMA DENGAN ADD PRODUCT */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .form-group { margin-bottom: 5px; }
+        .form-group { margin-bottom: 10px; }
         .full-width { grid-column: span 2; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--line-color); border-radius: 6px; background: #FAFAFA; }
+        
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #FAFAFA; font-family: inherit; transition: 0.3s; }
+        textarea { resize: vertical; }
+        
         .price-section { display: none; }
         .price-section.active { display: block; }
-        .img-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
-        .img-tab-btn { padding: 5px 15px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
+
+        /* IMAGE SECTION */
+        .image-section { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: start; }
+        .preview-box { width: 120px; height: 120px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f9f9f9; }
+        .preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-placeholder { color: #aaa; font-size: 2rem; }
+
+        .img-tabs { display: flex; gap: 10px; margin-bottom: 8px; }
+        .img-tab-btn { padding: 5px 10px; border: 1px solid #ddd; background: #f9f9f9; cursor: pointer; font-size: 0.8rem; border-radius: 4px; }
         .img-tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
         .img-input-group { display: none; }
         .img-input-group.active { display: block; }
-        .btn-save { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; font-weight: 600; cursor: pointer; }
-        .btn-cancel { display: block; width: 100%; padding: 14px; text-align: center; border: 1px solid var(--line-color); color: var(--text-light); text-decoration: none; font-weight: 600; }
+
+        /* BTN GROUP */
+        .btn-group { grid-column: span 2; display: flex; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--line-color); }
+        .btn-save { flex: 2; padding: 12px; background: var(--accent); color: #fff; border: none; font-weight: 700; cursor: pointer; border-radius: 6px; }
+        .btn-cancel { flex: 1; padding: 12px; text-align: center; border: 1px solid #ddd; background: #f5f5f5; color: #666; text-decoration: none; font-weight: 600; border-radius: 6px; }
+
         .modal-bg { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
         .modal-box { background: #fff; padding: 30px; border-radius: 8px; width: 400px; text-align: center; }
-        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+        @media (max-width: 768px) { .form-grid, .image-section { grid-template-columns: 1fr; } .preview-box { margin: 0 auto; } }
     </style>
 </head>
 <body>
@@ -99,78 +120,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="edit-container">
         <div class="edit-header">
             <h2>Edit Produk</h2>
-            <p>Perbarui: <strong><?= htmlspecialchars($product['name']) ?></strong></p>
+            <p>Perbarui informasi: <strong><?= htmlspecialchars($product['name']) ?></strong></p>
         </div>
 
         <form method="POST" enctype="multipart/form-data" class="form-grid">
             
-            <div class="form-group">
-                <label>Nama Produk</label>
-                <input type="text" name="name" value="<?= htmlspecialchars($product['name']) ?>" required>
+            <div>
+                <div class="form-group">
+                    <label>Nama Produk</label>
+                    <input type="text" name="name" value="<?= htmlspecialchars($product['name']) ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Kategori <a href="#" onclick="openCatModal()" style="font-size:0.8rem; color:var(--accent); float:right;">+ Baru</a></label>
+                    <select name="category" required>
+                        <?php foreach ($cats as $c): ?>
+                            <option value="<?= htmlspecialchars($c['name']) ?>" <?= $product['category'] == $c['name'] ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($c['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Jenis Produk</label>
+                    <select name="type" id="typeSelect" onchange="togglePriceInputs()">
+                        <option value="regular" <?= $product['type']=='regular'?'selected':'' ?>>Regular</option>
+                        <option value="custom"  <?= $product['type']=='custom'?'selected':'' ?>>Custom</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Bahan Utama</label>
+                    <textarea name="ingredients" rows="5"><?= htmlspecialchars($product['ingredients']) ?></textarea>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label>Gambar Produk</label>
-                <?php if (!empty($product['image_url'])): ?>
-                    <div style="display:flex; align-items:center; margin-bottom:10px;">
-                        <?php $imgSrc = (!preg_match("~^(?:f|ht)tps?://~i", $product['image_url'])) ? "../" . $product['image_url'] : $product['image_url']; ?>
-                        <img src="<?= $imgSrc ?>" style="height:50px; border-radius:4px; margin-right:10px; border:1px solid #ddd;">
-                        <small style="color:#888;">Gambar saat ini</small>
+            <div>
+                <div class="form-group">
+                    <label>Gambar Produk</label>
+                    <div class="image-section">
+                        <div class="preview-box">
+                            <?php 
+                                $imgSrc = $product['image_url'];
+                                if (!empty($imgSrc) && !preg_match("~^(?:f|ht)tps?://~i", $imgSrc)) $imgSrc = "../" . $imgSrc;
+                            ?>
+                            <?php if (!empty($imgSrc)): ?>
+                                <img id="imgPreview" src="<?= $imgSrc ?>">
+                                <i class="fas fa-image preview-placeholder" id="placeholderIcon" style="display:none;"></i>
+                            <?php else: ?>
+                                <i class="fas fa-image preview-placeholder" id="placeholderIcon"></i>
+                                <img id="imgPreview" src="" style="display:none;">
+                            <?php endif; ?>
+                        </div>
+                        <div>
+                            <div class="img-tabs">
+                                <button type="button" class="img-tab-btn active" onclick="switchImgTab('upload')">Ganti File</button>
+                                <button type="button" class="img-tab-btn" onclick="switchImgTab('url')">Ganti URL</button>
+                            </div>
+                            <div id="tab-upload" class="img-input-group active">
+                                <input type="file" name="image_file" id="fileInput" accept="image/*" onchange="previewFile()">
+                            </div>
+                            <div id="tab-url" class="img-input-group">
+                                <input type="text" name="image_url_text" id="urlInput" placeholder="https://..." value="<?= filter_var($product['image_url'], FILTER_VALIDATE_URL) ? $product['image_url'] : '' ?>" oninput="previewUrl()">
+                            </div>
+                        </div>
                     </div>
-                <?php endif; ?>
-                <div class="img-tabs">
-                    <button type="button" class="img-tab-btn active" onclick="switchImgTab('upload')">Ganti File</button>
-                    <button type="button" class="img-tab-btn" onclick="switchImgTab('url')">Ganti URL</button>
                 </div>
-                <div id="tab-upload" class="img-input-group active">
-                    <input type="file" name="image_file" accept="image/*" style="background:#fff;">
+
+                <div class="form-group">
+                    <label>Harga (Rp)</label>
+                    <div id="priceRegular" class="price-section active">
+                        <input type="number" name="price" value="<?= $product['price'] ?>">
+                    </div>
+                    <div id="priceCustom" class="price-section" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <input type="number" name="price_min" value="<?= $product['price_min'] ?>">
+                        <input type="number" name="price_max" value="<?= $product['price_max'] ?>">
+                    </div>
                 </div>
-                <div id="tab-url" class="img-input-group">
-                    <input type="text" name="image_url_text" placeholder="https://..." value="<?= filter_var($product['image_url'], FILTER_VALIDATE_URL) ? $product['image_url'] : '' ?>">
+
+                <div class="form-group">
+                    <label>Deskripsi Lengkap</label>
+                    <textarea name="description" rows="5"><?= htmlspecialchars($product['description']) ?></textarea>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Kategori <a href="#" onclick="openCatModal()" style="font-size:0.8rem; color:var(--accent); float:right;">+ Baru</a></label>
-                <select name="category" required>
-                    <?php foreach ($cats as $c): ?>
-                        <option value="<?= htmlspecialchars($c['name']) ?>" <?= $product['category'] == $c['name'] ? 'selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="btn-group">
+                <a href="products.php" class="btn-cancel">Batal</a>
+                <button type="submit" class="btn-save">Simpan Perubahan</button>
             </div>
-
-            <div class="form-group">
-                <label>Jenis Produk</label>
-                <select name="type" id="typeSelect" onchange="togglePriceInputs()">
-                    <option value="regular" <?= $product['type']=='regular'?'selected':'' ?>>Regular</option>
-                    <option value="custom"  <?= $product['type']=='custom'?'selected':'' ?>>Custom</option>
-                </select>
-            </div>
-
-            <div id="priceRegular" class="form-group full-width price-section">
-                <label>Harga (Rp)</label>
-                <input type="number" name="price" value="<?= $product['price'] ?>">
-            </div>
-            <div id="priceCustom1" class="form-group price-section">
-                <label>Min (Rp)</label>
-                <input type="number" name="price_min" value="<?= $product['price_min'] ?>">
-            </div>
-            <div id="priceCustom2" class="form-group price-section">
-                <label>Max (Rp)</label>
-                <input type="number" name="price_max" value="<?= $product['price_max'] ?>">
-            </div>
-
-            <div class="form-group">
-                <label>Bahan Utama</label>
-                <textarea name="ingredients" rows="5"><?= htmlspecialchars($product['ingredients']) ?></textarea>
-            </div>
-            <div class="form-group">
-                <label>Deskripsi Lengkap</label>
-                <textarea name="description" rows="5"><?= htmlspecialchars($product['description']) ?></textarea>
-            </div>
-
-            <div class="form-group"><a href="products.php" class="btn-cancel">Batal</a></div>
-            <div class="form-group"><button type="submit" class="btn-save">Simpan Perubahan</button></div>
         </form>
     </div>
 </div>
@@ -193,31 +231,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         setTimeout(() => { document.querySelector('.reveal').classList.add('active'); }, 100);
         togglePriceInputs();
     });
+
     function togglePriceInputs() {
         const type = document.getElementById('typeSelect').value;
         if (type === 'regular') {
             document.getElementById('priceRegular').style.display = 'block';
-            document.getElementById('priceCustom1').style.display = 'none';
-            document.getElementById('priceCustom2').style.display = 'none';
+            document.getElementById('priceCustom').style.display = 'none';
         } else {
             document.getElementById('priceRegular').style.display = 'none';
-            document.getElementById('priceCustom1').style.display = 'block';
-            document.getElementById('priceCustom2').style.display = 'block';
+            document.getElementById('priceCustom').style.display = 'grid';
         }
     }
+
     function switchImgTab(mode) {
         document.querySelectorAll('.img-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.img-input-group').forEach(g => g.classList.remove('active'));
         if(mode === 'upload') {
             document.querySelectorAll('.img-tab-btn')[0].classList.add('active');
             document.getElementById('tab-upload').classList.add('active');
-            document.querySelector('input[name="image_url_text"]').value = ''; 
+            document.getElementById('urlInput').value = ''; 
         } else {
             document.querySelectorAll('.img-tab-btn')[1].classList.add('active');
             document.getElementById('tab-url').classList.add('active');
-            document.querySelector('input[name="image_file"]').value = ''; 
+            document.getElementById('fileInput').value = ''; 
         }
     }
+
+    function previewFile() {
+        const file = document.getElementById('fileInput').files[0];
+        const preview = document.getElementById('imgPreview');
+        const icon = document.getElementById('placeholderIcon');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                icon.style.display = 'none';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function previewUrl() {
+        const url = document.getElementById('urlInput').value;
+        const preview = document.getElementById('imgPreview');
+        const icon = document.getElementById('placeholderIcon');
+
+        if (url) {
+            preview.src = url;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+        } else {
+            // Jangan reset preview jika sedang edit dan input kosong (biar gambar lama tetap ada)
+            // Tapi jika input diubah jadi kosong, mungkin user mau hapus? 
+            // Untuk amannya, kita biarkan gambar lama jika input URL kosong.
+        }
+    }
+
     function openCatModal() { document.getElementById('catModal').style.display = 'flex'; }
     function closeCatModal() { document.getElementById('catModal').style.display = 'none'; }
 </script>
