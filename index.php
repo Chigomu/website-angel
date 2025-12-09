@@ -49,6 +49,10 @@ try {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
+    html {
+        scroll-behavior: smooth; /* Agar scroll menjadi halus */
+        scroll-padding-top: 75px; /* Jarak offset agar tidak tertutup navbar (sesuaikan tinggi navbar) */
+    }
     /* === FIX TOMBOL HUBUNGI WA === */
     #lokasi .btn-primary:hover {
         background-color: var(--text-dark) !important;
